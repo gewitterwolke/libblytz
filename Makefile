@@ -3,7 +3,7 @@ LDPATHS=-L/usr/local/lib
 LDFLAGS=$(LDPATHS) 
 CCPATHS=-I/usr/local/include
 DEBUG=-g -Wall
-COMPILER=g++
+COMPILER=g++48
 
 all: libblytz.so
 

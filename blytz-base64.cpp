@@ -7,6 +7,8 @@
 #include <cstring>
 #include <math.h>
 
+#include <string>
+
 #include "blytz-base64.h"
 
 char *b64_encode(const char *str) {
@@ -50,6 +52,35 @@ int get_decoded_len(const char* b64input) {
 		padding = 1;
 	 
 	return (int)len * 0.75 - padding;
+}
+
+#define B64_MAX_LINE_LEN 63
+
+char *b64_decode_wo_newlines(const char *str) {
+
+	unsigned int strl = strlen(str);
+	unsigned int strl_n = strl / B64_MAX_LINE_LEN;
+
+	char *nstr = (char *) malloc( strl + strl_n);
+
+	if (strl > B64_MAX_LINE_LEN && str[B64_MAX_LINE_LEN] != '\n') {
+
+		for (unsigned int i = 0, j = 0; i < strl; i += B64_MAX_LINE_LEN) {
+
+			unsigned int r = strl - i;
+
+			if (r > B64_MAX_LINE_LEN) {
+				memcpy( nstr + j, str + i, B64_MAX_LINE_LEN);
+				j += B64_MAX_LINE_LEN;
+				nstr[++j] = '\n';
+			} else {
+				memcpy( nstr + j, str + i, r);
+			}
+		}
+		return b64_decode(nstr);
+	}
+
+	return b64_decode(str);
 }
 
 char *b64_decode(const char *str) {
