@@ -11,14 +11,32 @@
 
 #include "blytz-base64.h"
 
+unsigned int get_encoded_len(const char *in) {
+
+	int len = strlen(in);
+
+	printf("len: %d\n", len);
+
+	// number of newlines in output
+	unsigned int nnls = len / 48;
+
+	printf("nnls: %d\n", nnls);
+
+	// size of base64 buffer
+	unsigned int enclen = 4 * ceil((double) len / 3) + nnls;
+
+	return enclen;
+}
+
 char *b64_encode(const char *str) {
 	 BIO *bio, *b64;
 
-	 unsigned int len = strlen(str);
+	 unsigned int enclen = get_encoded_len(str);
+	 printf( "enclen: %d\n", enclen);
 
-	 // size of base64 buffer
-	 int enclen = 4 * ceil((double) len / 3);
 	 char *buffer = (char *)malloc(enclen + 1);
+	 memset( buffer, 0, enclen + 1);
+
 	 // file stream to buffer
 	 FILE *streambuf = fmemopen(buffer, enclen + 1, "w");
 
@@ -26,8 +44,11 @@ char *b64_encode(const char *str) {
 	 bio = BIO_new_fp(streambuf, BIO_NOCLOSE);
 	 bio = BIO_push(b64, bio);
 
-	 //Ignore newlines - write everything in one line
-	 BIO_set_flags(bio, BIO_FLAGS_BASE64_NO_NL); 
+	 // Ignore newlines - write everything in one line
+	 //BIO_set_flags(bio, BIO_FLAGS_BASE64_NO_NL); 
+	 
+	 unsigned int len = strlen(str);
+	 //printf("len: %d\n", len);
 
 	 BIO_write(bio, str, len);
 	 BIO_flush(bio);
@@ -39,11 +60,11 @@ char *b64_encode(const char *str) {
 }
 
 // calculates the length of a decoded base64 string
-int get_decoded_len(const char* b64input) { 
+unsigned int get_decoded_len(const char* b64input) { 
 	unsigned int len = strlen(b64input);
 	int padding = 0;
 	 
-	// last two chars are =
+	// last two chars are ==
 	if (b64input[len-1] == '=' && b64input[len-2] == '=') 
 		padding = 2;
 
@@ -51,39 +72,10 @@ int get_decoded_len(const char* b64input) {
 	else if (b64input[len-1] == '=') 
 		padding = 1;
 	 
-	return (int)len * 0.75 - padding;
+	return len * 0.75 - padding;
 }
 
-#define B64_MAX_LINE_LEN 63
-
-char *b64_decode_wo_newlines(const char *str) {
-
-	unsigned int strl = strlen(str);
-	unsigned int strl_n = strl / B64_MAX_LINE_LEN;
-
-	char *nstr = (char *) malloc( strl + strl_n);
-
-	if (strl > B64_MAX_LINE_LEN && str[B64_MAX_LINE_LEN] != '\n') {
-
-		for (unsigned int i = 0, j = 0; i < strl; i += B64_MAX_LINE_LEN) {
-
-			unsigned int r = strl - i;
-
-			if (r > B64_MAX_LINE_LEN) {
-				memcpy( nstr + j, str + i, B64_MAX_LINE_LEN);
-				j += B64_MAX_LINE_LEN;
-				nstr[++j] = '\n';
-			} else {
-				memcpy( nstr + j, str + i, r);
-			}
-		}
-		return b64_decode(nstr);
-	}
-
-	return b64_decode(str);
-}
-
-char *b64_decode(const char *str) {
+char *b64_decode_helper(const char *str, bool use_newlines) {
 
 	 BIO *bio, *b64;
 	 unsigned int declen = get_decoded_len(str);
@@ -99,7 +91,9 @@ char *b64_decode(const char *str) {
 	 bio = BIO_push(b64, bio);
 
 	 // do not use newlines to flush buffer
-	 BIO_set_flags(bio, BIO_FLAGS_BASE64_NO_NL); 
+	 if (!use_newlines) {
+	   BIO_set_flags(bio, BIO_FLAGS_BASE64_NO_NL); 
+	 }
 	 readlen = BIO_read(bio, buffer, len);
 
 	 // can test here if len == declen - if not, then return an error
@@ -109,4 +103,12 @@ char *b64_decode(const char *str) {
 	 fclose(stream);
 	   
 	 return buffer;
+}
+
+char *b64_decode(const char *str) {
+	return b64_decode_helper(str, true);
+}
+
+char *b64_decode_wo_newlines(const char *str) {
+	return b64_decode_helper(str, false);
 }
