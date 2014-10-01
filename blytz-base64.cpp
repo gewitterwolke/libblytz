@@ -11,28 +11,44 @@
 
 #include "blytz-base64.h"
 
-unsigned int get_encoded_len(const char *in) {
+unsigned int get_encoded_len(const char *in, bool use_newlines) {
 
 	int len = strlen(in);
 
-	printf("len: %d\n", len);
+	// printf("len: %d\n", len);
 
 	// number of newlines in output
-	unsigned int nnls = len / 48;
+	unsigned int nnls = len / ( B64_MAX_LINE_LEN * 0.75);
 
-	printf("nnls: %d\n", nnls);
+	// printf("nnls: %d\n", nnls);
 
-	// size of base64 buffer
-	unsigned int enclen = 4 * ceil((double) len / 3) + nnls;
+	// size of base64 buffer (including newlines every 64 chars)
+	unsigned int enclen = 4 * ceil( len / 3.0);
+
+	if (use_newlines) {
+		enclen += nnls;
+	}
 
 	return enclen;
 }
 
+unsigned int get_encoded_len(const char *in) {
+	return get_encoded_len(in, true);
+}
+
+unsigned int get_encoded_len_wo_newlines(const char *in) {
+	return get_encoded_len(in, false);
+}
+
 char *b64_encode(const char *str) {
+	return b64_encode(str, true);
+}
+
+char *b64_encode(const char *str, bool use_newlines) {
 	 BIO *bio, *b64;
 
-	 unsigned int enclen = get_encoded_len(str);
-	 printf( "enclen: %d\n", enclen);
+	 unsigned int enclen = get_encoded_len(str, use_newlines);
+	 // printf( "enclen: %d\n", enclen);
 
 	 char *buffer = (char *)malloc(enclen + 1);
 	 memset( buffer, 0, enclen + 1);
@@ -44,11 +60,11 @@ char *b64_encode(const char *str) {
 	 bio = BIO_new_fp(streambuf, BIO_NOCLOSE);
 	 bio = BIO_push(b64, bio);
 
-	 // Ignore newlines - write everything in one line
-	 //BIO_set_flags(bio, BIO_FLAGS_BASE64_NO_NL); 
+	 if (!use_newlines) {
+	   BIO_set_flags(bio, BIO_FLAGS_BASE64_NO_NL); 
+	 }
 	 
 	 unsigned int len = strlen(str);
-	 //printf("len: %d\n", len);
 
 	 BIO_write(bio, str, len);
 	 BIO_flush(bio);
@@ -75,7 +91,7 @@ unsigned int get_decoded_len(const char* b64input) {
 	return len * 0.75 - padding;
 }
 
-char *b64_decode_helper(const char *str, bool use_newlines) {
+char *b64_decode(const char *str, bool use_newlines) {
 
 	 BIO *bio, *b64;
 	 unsigned int declen = get_decoded_len(str);
@@ -106,9 +122,5 @@ char *b64_decode_helper(const char *str, bool use_newlines) {
 }
 
 char *b64_decode(const char *str) {
-	return b64_decode_helper(str, true);
-}
-
-char *b64_decode_wo_newlines(const char *str) {
-	return b64_decode_helper(str, false);
+	return b64_decode(str, true);
 }

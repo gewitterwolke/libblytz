@@ -113,14 +113,16 @@ namespace blytz {
 		unsigned char *dat = aes_encrypt(&en, (unsigned char *)str, &len);
 
 		char *keystr = get_keystr((const char *)dat, (const char *)salt);
-		char *enc = b64_encode(keystr);
+		char *enc = b64_encode(keystr, false);
 
+		/*
 		// replace newlines
 		for (unsigned int i = 0; i < strlen(enc); i++) {
 			if (enc[i] == '\n') {
 				enc[i] = '!';
 			}
 		}
+		*/
 
 		free(keystr);
 		free(salt);
@@ -135,10 +137,11 @@ namespace blytz {
 	// 
 	const char *decrypt(const char *str, const char *pwd) {
 
-		char *str2 = (char *) malloc(strlen(str));
+		char *str2 = (char *) calloc(1, strlen(str));
 		//strcpy(str2, str);
 
-		// strip leading and trailing quotation marks, restore newlines
+		// strip leading and trailing quotation marks
+		/*
 		unsigned int j = 0;
 		for (unsigned int i = 0; i < strlen(str); i++) {
 
@@ -152,6 +155,14 @@ namespace blytz {
 				str2[j++] = c;
 			}
 		}
+		*/
+
+		bool has_newlines = false;
+		if (strstr(str, "\n")) {
+			has_newlines = true;
+		}
+
+		strncpy(str2, str + 1, strlen(str) - 2);
 
 		// debug output
 		FILE *f = fopen("/tmp/debugenc.txt", "a");
@@ -159,7 +170,7 @@ namespace blytz {
 		fprintf(f, "%s\n", str2);
 		fflush(f);
 
-		char *dec = b64_decode(str2);
+		char *dec = b64_decode(str2, has_newlines);
 		char *salt = get_salt(dec);
 
 		fprintf(f, "base64 decoded: %s\n", dec);
