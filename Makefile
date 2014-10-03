@@ -3,9 +3,12 @@ LDPATHS=-L/usr/local/lib
 LDFLAGS=$(LDPATHS) 
 CCPATHS=-I/usr/local/include
 DEBUG=-g -Wall
-COMPILER=g++48
+COMPILER=clang++
+GTEST_DIR=gtest-1.7.0/
 
 all: libblytz.so
+
+test: blytz-test.o
 
 install:
 	sudo cp libblytz.so /usr/local/lib/
@@ -31,8 +34,11 @@ blytz-enc.o: blytz-enc.cpp
 blytz-base64.o: blytz-base64.cpp
 	$(COMPILER) $(DEBUG) -fPIC $(CCPATHS) -c blytz-base64.cpp -o blytz-base64.o
 
-blytz-debug.o: blytz-debug.cpp
+blytz-debug.o: blytz-debug.cpp blytz-debug.h
 	$(COMPILER) $(DEBUG) -fPIC $(CCPATHS) -c blytz-debug.cpp -o blytz-debug.o
+
+blytz-test.o: blytz-test.cpp libblytz.so
+	$(COMPILER) $(DEBUG) $(CCPATHS) blytz-test.cpp  -L. -lblytz -lgtest $(LDFLAGS) -pthread -o blytz-test && ./blytz-test
 
 clean:
 	rm -rf *~ .*~ *.o *.so

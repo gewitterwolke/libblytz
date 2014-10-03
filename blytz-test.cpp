@@ -2,18 +2,29 @@
 
 #include "blytz-base64.h"
 
-bool test_b64() {
+#include <gtest/gtest.h>
 
-	const char *str = "ihehsdifjslkdfjllskdjflkdsjflkjsflkdsjfldslla\
-			sdjflsd jflkds jfldsjlkfsk";
+TEST(Base64Test, EncLength) {
+	//const char *str = "ihehsdifjslkdfjllskdjflkdsjflkjsflkdsjfldslla sdjflsd jflkds jfldsjlkfsk";
+	const char *str = "fsk";
+
+	unsigned int enclen = b64_get_encoded_len(str, true);
+
+	char *enc = b64_encode(str);
+	EXPECT_EQ(strlen(enc), enclen);
+}
+
+TEST(Base64Test, EncodeEqDecode) {
+	const char *str = "ihehsdifjslkdfjllskdjflkdsjflkjsflkdsjfldslla sdjflsd jflkds jfldsjlkfsk";
 
 	char *enc = b64_encode(str);
 	char *dec = b64_decode(enc);
 
-	if (strcmp(enc, dec)) {
-		return false;
-	} else {
-		return true;
-	}
+	EXPECT_STREQ(str, dec);
+}
 
+int main(int argc, char **argv) {
+	::testing::InitGoogleTest(&argc, argv);
+	return RUN_ALL_TESTS();
+	return 0;
 }

@@ -12,33 +12,34 @@
 #include "blytz-base64.h"
 #include "blytz-debug.h"
 
-unsigned int get_encoded_len(const char *in, bool use_newlines) {
+unsigned int b64_get_encoded_len(const char *in, bool use_newlines) {
 
 	int len = strlen(in);
 
-	printfd("len: %d\n", len);
+	printfd("length of input string: %d\n", len);
 
 	// number of newlines in output
 	unsigned int nnls = len / ( B64_MAX_LINE_LEN * 0.75);
 
-	printfd("nnls: %d\n", nnls);
+	if (use_newlines) {
+		printfd("newlines in encoded string: %d\n", nnls);
+	}
 
 	// size of base64 buffer (including newlines every 64 chars)
 	unsigned int enclen = 4 * ceil( len / 3.0);
 
+	printfd("length of plain encoded string: %d\n", enclen);
+
 	if (use_newlines) {
-		enclen += nnls;
+		// +1 since openssl always adds a newline at the end
+		enclen += nnls + 1;
 	}
 
 	return enclen;
 }
 
-unsigned int get_encoded_len(const char *in) {
-	return get_encoded_len(in, true);
-}
-
-unsigned int get_encoded_len_wo_newlines(const char *in) {
-	return get_encoded_len(in, false);
+unsigned int b64_get_encoded_len(const char *in) {
+	return b64_get_encoded_len(in, true);
 }
 
 char *b64_encode(const char *str) {
@@ -48,14 +49,13 @@ char *b64_encode(const char *str) {
 char *b64_encode(const char *str, bool use_newlines) {
 	 BIO *bio, *b64;
 
-	 unsigned int enclen = get_encoded_len(str, use_newlines);
-	 printfd( "enclen: %d\n", enclen);
+	 unsigned int enclen = b64_get_encoded_len(str, use_newlines);
 
-	 char *buffer = (char *)malloc(enclen + 1);
-	 memset( buffer, 0, enclen + 1);
+	 // +1 for zero-terminator
+	 char *buffer = (char *) calloc(0, enclen + 5);
 
 	 // file stream to buffer
-	 FILE *streambuf = fmemopen(buffer, enclen + 1, "w");
+	 FILE *streambuf = fmemopen(buffer, enclen, "w");
 
 	 b64 = BIO_new(BIO_f_base64());
 	 bio = BIO_new_fp(streambuf, BIO_NOCLOSE);
@@ -71,7 +71,15 @@ char *b64_encode(const char *str, bool use_newlines) {
 	 BIO_flush(bio);
 	 BIO_free_all(bio);
 
+	 printfd( "%s\n", buffer);
+
 	 fclose(streambuf);
+
+	 /*
+	 if (buffer[enclen] == '\n') {
+		 buffer[enclen] = '\0';
+	 }
+	 */
 
 	 return buffer;
 }
@@ -99,7 +107,7 @@ char *b64_decode(const char *str, bool use_newlines) {
 	 unsigned int readlen = 0;
 	 unsigned int len = strlen(str);
 
-	 char *buffer = (char*)malloc(declen + 1);
+	 char *buffer = (char*)calloc(0, declen + 1);
 
 	 FILE *stream = fmemopen((void *)str, len, "r");
 	  

@@ -2,7 +2,6 @@
 #include <cstdarg>
 
 namespace blytz {
-
 #define BLYTZ_DEBUG 1
 
 // 1 = stdout, 2 = /tmp/blytz-debug.log, 3 = custom (not implemented yet)
@@ -16,7 +15,6 @@ namespace blytz {
 	\
 	FILE *df; \
 	df = fopen("/tmp/blytz-debug.log", "a"); \
-	fprintf(df, "---------------\n"); \
 	fflush(df);\
 	\
 	fprintf( df, "%02d-%02d %02d:%02d - %s:%d | " FMT, \
