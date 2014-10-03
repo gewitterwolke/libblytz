@@ -17,7 +17,7 @@ int printfd1(const char *fmt, ...) {
 
 		FILE *df;
 #if DEBUG_TARGET == 2
-		df = fopen("blytz-debug.log", "a");
+		df = fopen("/tmp/blytz-debug.log", "a");
 		fprintf(df, "---------------\n");
 		fflush(df);
 #else 

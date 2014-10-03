@@ -6,6 +6,7 @@
 
 #include "blytz-enc.h"
 #include "blytz-base64.h"
+#include "blytz-debug.h"
 
 namespace blytz {
 
@@ -35,7 +36,7 @@ namespace blytz {
 				key_data, key_data_len, nrounds, key, iv);
 
 		if (i != 32) {
-			printf("Key size is %d bits - should be 256 bits\n", i);
+			printfd("Key size is %d bits - should be 256 bits\n", i);
 			return -1;
 		}
 
@@ -105,7 +106,7 @@ namespace blytz {
 		EVP_CIPHER_CTX en, de;
 
 		if (aes_init((unsigned char *)pwd, pwdlen, salt, &en, &de)) {
-			printf("Couldn't initialize AES cipher\n");
+			printfd("Couldn't initialize AES cipher\n");
 			return INVALID_PASSWORD;
 		}
 
@@ -165,16 +166,14 @@ namespace blytz {
 		strncpy(str2, str + 1, strlen(str) - 2);
 
 		// debug output
-		FILE *f = fopen("/tmp/debugenc.txt", "a");
-		fprintf(f, "Incoming string for decryption (after replacing '!')\n");
-		fprintf(f, "%s\n", str2);
-		fflush(f);
+		//FILE *f = fopen("/tmp/debugenc.txt", "a");
+		printfd( "Incoming string for decryption (after replacing '!')\n");
+		printfd( "%s\n", str2);
 
 		char *dec = b64_decode(str2, has_newlines);
 		char *salt = get_salt(dec);
 
-		fprintf(f, "base64 decoded: %s\n", dec);
-		fclose(f);
+		printfd( "base64 decoded: %s\n", dec);
 
 		unsigned int pwdlen = strlen(pwd);
 
@@ -183,7 +182,7 @@ namespace blytz {
 		// initialize AES using salt from incoming string
 		if (aes_init((unsigned char *)pwd, pwdlen, (unsigned char *)salt, 
 					&en, &de)) {
-			printf("Couldn't initialize AES cipher\n");
+			printfd("Couldn't initialize AES cipher\n");
 			return INVALID_PASSWORD;
 		}
 

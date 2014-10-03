@@ -12,6 +12,7 @@
 
 #include "blytz-rest.h"
 #include "blytz-api.h"
+#include "blytz-debug.h"
 
 namespace blytz {
 
@@ -20,8 +21,6 @@ namespace blytz {
 	std::string cookie_filename = BLYTZ_COOKIE_FILE;
 
 	bool has_cookie = false;
-
-	FILE *f = fopen("/tmp/debugrest.txt", "a");
 
 	int write_callback(void *data, size_t size, size_t nmemb, void *userdata) {
 
@@ -33,10 +32,9 @@ namespace blytz {
 		r->body.append((char*) data, size * nmemb);
 
 		//FILE *f = fopen("/tmp/debugrestwrite.txt", "a");
-		fprintf(f, "WRITE count %d\n", count);
-		fprintf(f, "WRITE addr: %p\n", &r->body);
-		fprintf(f, "WRITE cstr: %s\n", (char *)r->body.c_str());
-		fflush(f);
+		printfd("WRITE count %d\n", count);
+		printfd("WRITE addr: %p\n", &r->body);
+		printfd("WRITE cstr: %s\n", (char *)r->body.c_str());
 		//fclose(f);
 
 		return (size * nmemb);
@@ -126,9 +124,7 @@ namespace blytz {
 		CURL *curl = curl_easy_init();
 
 		if (curl) {
-			//FILE *f = fopen("/tmp/debugrest.txt", "w");
-			fprintf(f, "GET url %s\n", url.c_str());
-			fflush(f);
+			printfd("GET url %s\n", url.c_str());
 
 			// set default curl options
 			rest_set_curl_options(curl);
@@ -147,10 +143,9 @@ namespace blytz {
 
 			ret.code = (int) http_code;
 
-			fprintf(f, "GET code %d\n", ret.code);
-			fprintf(f, "GET addr %p\n", &ret.body);
-			fprintf(f, "GET len %lud\n", ret.body.length());
-			fflush(f);
+			printfd("GET code %d\n", ret.code);
+			printfd("GET addr %p\n", &ret.body);
+			printfd( "GET len %lud\n", ret.body.length());
 
 			curl_easy_cleanup(curl);
 			curl_global_cleanup();
@@ -175,9 +170,7 @@ namespace blytz {
 	const char *get_sessionid() {
 		std::string sessionid;
 
-		FILE *f = fopen("/tmp/debugapi.txt", "a");
-		fprintf(f,"BLYTZ-API - in get_sessionid()\n");
-		fflush(f);
+		printfd("BLYTZ-API - in get_sessionid()\n");
 
 		// FIXME 
 		const char pre_sid_garbage[] = "s\%3A";
@@ -185,18 +178,15 @@ namespace blytz {
 		std::ifstream cookie_file;
 		cookie_file.open(cookie_filename.c_str());
 
-		fprintf(f,"BLYTZ-API - in get_sessionid2()\n");
-		fflush(f);
+		printfd("BLYTZ-API - in get_sessionid2()\n");
 
 		if (!cookie_file.is_open()) {
 			return rest_error_to_str(NO_SESSIONID).c_str();
-			fprintf(f,"BLYTZ-API - failed to open cookie file %s\n",
+			printfd("BLYTZ-API - failed to open cookie file %s\n",
 					cookie_filename.c_str()); 
-			fflush(f);
 		}
 
-		fprintf(f,"BLYTZ-API - opened cookie file %s\n", cookie_filename.c_str());
-		fflush(f);
+		printfd("BLYTZ-API - opened cookie file %s\n", cookie_filename.c_str());
 
 		std::string line;
 
@@ -215,7 +205,7 @@ namespace blytz {
 					size_t sid_len = pos_end_sid - pos_sid;
 					sessionid = line.substr(pos_sid, sid_len);
 					// FIXME: Sessionid not in public log file
-					fprintf(f, "BLYTZ-API - found session id %s\n", sessionid.c_str());
+					printfd( "BLYTZ-API - found session id %s\n", sessionid.c_str());
 
 					cookie_file.close();
 					break;
@@ -224,19 +214,17 @@ namespace blytz {
 		}
 
 		cookie_file.close();
-		fprintf(f,"BLYTZ-API - closed cookie file %s\n", cookie_filename.c_str());
-		fflush(f);
+		printfd("BLYTZ-API - closed cookie file %s\n", cookie_filename.c_str());
 
 		// copy, user has to delete it
-		fprintf(f,"BLYTZ-API - length of sessionid string %lu\n", sessionid.size());
+		printfd("BLYTZ-API - length of sessionid string %lu\n", sessionid.size());
 		char *sessionid_ch = (char *) malloc(BLYTZ_SESSIONID_STR_LEN);
 		//memcpy(sessionid_ch, sessionid.c_str(), sessionid.size());
 		sessionid_ch = strncpy(sessionid_ch, sessionid.c_str(), 
 				BLYTZ_SESSIONID_STR_LEN);
 		//strcpy(sessionid_ch, sessionid.c_str());
 
-		fprintf(f, "BLYTZ-API - returning session id %s\n", sessionid_ch);
-		fflush(f);
+		printfd( "BLYTZ-API - returning session id %s\n", sessionid_ch);
 		return sessionid_ch;
 	}
 }

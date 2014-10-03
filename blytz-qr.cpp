@@ -10,6 +10,7 @@
 
 #include "blytz-qr.h"
 #include "blytz-api.h"
+#include "blytz-debug.h"
 
 // this file contains a lot of code from qrenc.c in libqrencode licensed under
 // the GPL -->
@@ -122,8 +123,7 @@ namespace blytz {
 
 	std::vector<unsigned char> get_qrcode_png(const char *str) {
 
-		FILE *f = fopen("/tmp/debugapi.txt", "a");
-		fprintf( f, "BLYTZ-API - creating QR code from string %s\n", str);
+		printfd( "BLYTZ-API - creating QR code from string %s\n", str);
 
 		char *str2 = (char *)malloc(strlen(str) + MAX_ENC_PWD_LEN);
 		strcpy(str2, str);
@@ -143,8 +143,8 @@ namespace blytz {
 		}
 		fclose(fqr);
 
-		fprintf( f, "BLYTZ-API - QR code created\n");
-		fclose(f);
+		printfd( "BLYTZ-API - QR code created\n");
+		//fclose(f);
 		return buf;
 	}
 
@@ -178,31 +178,31 @@ namespace blytz {
 		row = (unsigned char *)malloc(rowlen);
 
 		if(row == NULL) {
-			fprintf(stderr, "Failed to allocate memory.\n");
+			printfd("Failed to allocate memory.\n");
 			exit(EXIT_FAILURE);
 		}
 
 		png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 		if(png_ptr == NULL) {
-			fprintf(stderr, "Failed to initialize PNG writer.\n");
+			printfd("Failed to initialize PNG writer.\n");
 			exit(EXIT_FAILURE);
 		}
 
 		info_ptr = png_create_info_struct(png_ptr);
 		if(info_ptr == NULL) {
-			fprintf(stderr, "Failed to initialize PNG write.\n");
+			printfd("Failed to initialize PNG write.\n");
 			exit(EXIT_FAILURE);
 		}
 
 		if(setjmp(png_jmpbuf(png_ptr))) {
 			png_destroy_write_struct(&png_ptr, &info_ptr);
-			fprintf(stderr, "Failed to write PNG image.\n");
+			printfd("Failed to write PNG image.\n");
 			exit(EXIT_FAILURE);
 		}
 
 		palette = (png_colorp) malloc(sizeof(png_color) * 2);
 		if(palette == NULL) {
-			fprintf(stderr, "Failed to allocate memory.\n");
+			printfd("Failed to allocate memory.\n");
 			exit(EXIT_FAILURE);
 		}
 

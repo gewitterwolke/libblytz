@@ -247,15 +247,12 @@ namespace blytz {
 			rest_response res = rest_get(conn_str);
 
 			strncpy(ret.message, res.body.c_str(), MAX_MSG_SIZE);
-			fprintf(f, "get_password: %s\n", ret.message);
-			fflush(f);
+			printfd("get_password: %s\n", ret.message);
 
 			if (is_encrypted()) {
-				fprintf(f, "decrypting\n");
-				fflush(f);
+				printfd("decrypting\n");
 				const char *dec = decrypt(ret.message, get_encryption_pwd());
-				fprintf(f, "decrypted: %s\n", dec);
-				fflush(f);
+				printfd("decrypted: %s\n", dec);
 				strncpy(ret.message, dec, MAX_MSG_SIZE);
 			}
 	
@@ -279,13 +276,12 @@ namespace blytz {
 
 			strncpy(ret.message, res.body.c_str(), MAX_MSG_SIZE);
 			FILE *f = fopen("/tmp/debugapi.txt", "a");
-			fprintf(f, "get_password: %s\n", ret.message);
+			printfd("get_password: %s\n", ret.message);
 
 			if (is_encrypted()) {
-				fprintf(f, "decrypting");
+				printfd("decrypting");
 				const char *dec = decrypt(ret.message, get_encryption_pwd());
-				fprintf(f, "decrypted: %s\n", dec);
-				fflush(f);
+				printfd("decrypted: %s\n", dec);
 				strncpy(ret.message, dec, MAX_MSG_SIZE);
 			}
 	
@@ -386,9 +382,7 @@ namespace blytz {
 		rest_response res;
 		res = rest_get(conn_str);
 
-		FILE *f = fopen("/tmp/debugapi.txt", "a");
-		fprintf(f,"encryption state %d\n", res.code);
-		fclose(f);
+		printfd("encryption state %d\n", res.code);
 		return res.code == HTTP_OK;
 	}
 

@@ -49,7 +49,7 @@ char *b64_encode(const char *str, bool use_newlines) {
 	 BIO *bio, *b64;
 
 	 unsigned int enclen = get_encoded_len(str, use_newlines);
-	 // printf( "enclen: %d\n", enclen);
+	 printfd( "enclen: %d\n", enclen);
 
 	 char *buffer = (char *)malloc(enclen + 1);
 	 memset( buffer, 0, enclen + 1);
