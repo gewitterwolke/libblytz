@@ -10,17 +10,18 @@
 #include <string>
 
 #include "blytz-base64.h"
+#include "blytz-debug.h"
 
 unsigned int get_encoded_len(const char *in, bool use_newlines) {
 
 	int len = strlen(in);
 
-	// printf("len: %d\n", len);
+	printfd("len: %d\n", len);
 
 	// number of newlines in output
 	unsigned int nnls = len / ( B64_MAX_LINE_LEN * 0.75);
 
-	// printf("nnls: %d\n", nnls);
+	printfd("nnls: %d\n", nnls);
 
 	// size of base64 buffer (including newlines every 64 chars)
 	unsigned int enclen = 4 * ceil( len / 3.0);
@@ -106,8 +107,8 @@ char *b64_decode(const char *str, bool use_newlines) {
 	 bio = BIO_new_fp(stream, BIO_NOCLOSE);
 	 bio = BIO_push(b64, bio);
 
-	 // do not use newlines to flush buffer
 	 if (!use_newlines) {
+		 // don't expect newlines every 64 bytes
 	   BIO_set_flags(bio, BIO_FLAGS_BASE64_NO_NL); 
 	 }
 	 readlen = BIO_read(bio, buffer, len);

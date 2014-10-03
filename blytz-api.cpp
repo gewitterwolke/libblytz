@@ -12,6 +12,7 @@
 #include "blytz-api.h"
 #include "blytz-rest.h"
 #include "blytz-enc.h"
+#include "blytz-debug.h"
 
 // usage:
 // (optional) set_server_url
@@ -50,7 +51,8 @@ namespace blytz {
 
 		rest_response res;
 
-		FILE *f = fopen("/tmp/debugapi.txt", "a");
+
+		//FILE *f = fopen("/tmp/debugapi.txt", "a");
 
 		/*
 		// FIXME: only SSH
@@ -71,15 +73,14 @@ namespace blytz {
 		std::string path = "/" + blytz_settings.name + "/" + blytz_settings.identifier;
 		std::string connect_url = blytz_settings.server_url + "/connect" + path;
 
-		fprintf( f, "BLYTZ-API - Connect url %s\n", connect_url.c_str());
+		printfd( "BLYTZ-API - Connect url %s\n", connect_url.c_str());
 		
 		res.code = HTTP_OK;
 		res = rest_get( connect_url);
 
 		if (res.code == HTTP_OK) {
 
-			fprintf( f, "BLYTZ_API - Connect returned HTTP_OK\n");
-			fclose(f);
+			printfd( "BLYTZ_API - Connect returned HTTP_OK\n");
 
 			initialized = true;
 
@@ -87,8 +88,7 @@ namespace blytz {
 			return ret;
 		}
 
-		fprintf( f, "Error connecting to BLYTZ server\n");
-		fclose(f);
+		printfd( "Error connecting to BLYTZ server\n");
 
 		strncpy(ret.message, "Error connecting to BLYTZ server", MAX_MSG_SIZE);
 		return ret;
@@ -99,17 +99,17 @@ namespace blytz {
 	}
 
 	void set_server_url(std::string url) {
-		FILE *f = fopen("/tmp/debugapi.txt", "a");
+		//FILE *f = fopen("/tmp/debugapi.txt", "a");
 		blytz_settings.server_url = url;		
-		fprintf(f,"BLYTZ-API - set server url %s\n", url.c_str());
-		fclose(f);
+		printfd( "BLYTZ-API - set server url %s\n", url.c_str());
+		//fclose(f);
 	}
 
 	void set_server_url(const char *url) {
-		FILE *f = fopen("/tmp/debugapi.txt", "a");
+		//FILE *f = fopen("/tmp/debugapi.txt", "a");
 		blytz_settings.server_url = url;
-		fprintf(f,"BLYTZ-API - set server url %s\n", url);
-		fclose(f);
+		printfd("BLYTZ-API - set server url %s\n", url);
+		//fclose(f);
 	}
 
 	void set_application_name(const char* name) {
@@ -121,17 +121,17 @@ namespace blytz {
 	}
 
 	void set_identifier(const char *id) {
-		FILE *f = fopen("/tmp/debugapi.txt", "a");
-		fprintf(f,"BLYTZ-API - set identifier %s\n", id);
+		//FILE *f = fopen("/tmp/debugapi.txt", "a");
+		printfd( "BLYTZ-API - set identifier %s\n", id);
 		blytz_settings.identifier = id;
-		fclose(f);
+		//fclose(f);
 	}
 
 	void set_identifier(std::string id) {
-		FILE *f = fopen("/tmp/debugapi.txt", "a");
-		fprintf(f,"BLYTZ-API - set identifier %s\n", id.c_str());
+		//FILE *f = fopen("/tmp/debugapi.txt", "a");
+		printfd( "BLYTZ-API - set identifier %s\n", id.c_str());
 		blytz_settings.identifier = id;
-		fclose(f);
+		//fclose(f);
 	}
 
 	std::string create_password() {
@@ -184,33 +184,32 @@ namespace blytz {
 		ret.error = OK;
 		std::string conn_str = blytz_settings.server_url + "/credentials/get";
 
-		FILE *f = fopen("/tmp/debugapi.txt", "a");
+		//FILE *f = fopen("/tmp/debugapi.txt", "a");
 
 		rest_response res;
 		res = rest_get(conn_str);
-		fprintf( f, "get, code: %d\n", res.code);
+		printfd( "get, code: %d\n", res.code);
 
 		if (res.code == NO_ENTRY) {
 			ret.error = NO_PASSWORD;
 		} else if (res.code == HTTP_OK || res.code == NOT_MODIFIED) {
 			ret.error = OK;
-			fprintf( f, "get, %s\n", res.body.c_str());
+
+			printfd( "get, %s\n", res.body.c_str());
 		
 			strncpy(ret.message, res.body.c_str(), MAX_MSG_SIZE);
 
 			if (is_encrypted()) {
 
 				if (blytz_settings.has_encpwd) {
-					fprintf(f, "Has encryption password\n");
-					fflush(f);
+					printfd( "Has encryption password\n");
 				} else { 
-					fprintf(f, "Has no encryption password\n");
-					fflush(f);
+					printfd( "Has no encryption password\n");
 				}
 
 				if (!has_encryption_pwd()) {
 
-					fprintf(f, "Encryption enabled on server side but no password specified\n");
+					printfd( "Encryption enabled on server side but no password specified\n");
 					ret.error = NO_PASSWORD;
 					strncpy(ret.message, 
 							"Encryption enabled on server side but no password specified", MAX_MSG_SIZE);
@@ -218,14 +217,11 @@ namespace blytz {
 				}
 
 				// we have an encrypted message and a password
-
-				fprintf(f, "Encrypted ret.message: %s\n", ret.message);
-				fflush(f);
+				printfd( "Encrypted ret.message: %s\n", ret.message);
 
 				const char *dec = decrypt(ret.message, get_encryption_pwd());
 				
-				fprintf(f, "Decrypted ret.message: %s\n", dec);
-				fflush(f);
+				printfd( "Decrypted ret.message: %s\n", dec);
 				strncpy(ret.message, dec, MAX_MSG_SIZE);
 			}
 
@@ -235,7 +231,7 @@ namespace blytz {
 			ret.error = GENERIC_ERROR;
 		}
 
-		fclose(f);
+		//fclose(f);
 		return ret;
 	}
 

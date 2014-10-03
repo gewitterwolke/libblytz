@@ -31,5 +31,8 @@ blytz-enc.o: blytz-enc.cpp
 blytz-base64.o: blytz-base64.cpp
 	$(COMPILER) $(DEBUG) -fPIC $(CCPATHS) -c blytz-base64.cpp -o blytz-base64.o
 
+blytz-debug.o: blytz-debug.cpp
+	$(COMPILER) $(DEBUG) -fPIC $(CCPATHS) -c blytz-debug.cpp -o blytz-debug.o
+
 clean:
 	rm -rf *~ .*~ *.o *.so
