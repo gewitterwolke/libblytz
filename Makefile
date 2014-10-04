@@ -37,8 +37,8 @@ blytz-base64.o: blytz-base64.cpp
 blytz-debug.o: blytz-debug.cpp blytz-debug.h
 	$(COMPILER) $(DEBUG) -fPIC $(CCPATHS) -c blytz-debug.cpp -o blytz-debug.o
 
-blytz-test.o: blytz-test.cpp libblytz.so
+blytz-test.o: blytz-test.cpp libblytz.so install
 	$(COMPILER) $(DEBUG) $(CCPATHS) blytz-test.cpp  -L. -lblytz -lgtest $(LDFLAGS) -pthread -o blytz-test && ./blytz-test
 
 clean:
-	rm -rf *~ .*~ *.o *.so
+	rm -rf *~ .*~ *.o *.so *.core
