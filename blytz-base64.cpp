@@ -148,10 +148,10 @@ char *b64_decode(const char *str, bool use_newlines) {
 	 unsigned int len = strlen(str);
 
 	 // add a newline at the end (openssl compatibility)
-	 len++;
+	 //len++;
 	 char *strnl = (char *) calloc(1, len);
 	 strcpy(strnl, str);
-	 strcat(strnl, "\n");
+	 //strcat(strnl, "\n");
 
 	 // +1 for zero-terminator and +1 for newline (added by openssl)
 	 char *buffer = (char*) calloc(1, declen + 2);
