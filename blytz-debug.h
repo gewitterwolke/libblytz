@@ -21,7 +21,7 @@ namespace blytz {
 	df = fopen("/tmp/blytz-debug.log", "a"); \
 	fflush(df);\
 	\
-	fprintf( df, "[DEBUG] %02d-%02d %02d:%02d - %s:%d | " FMT, \
+	fprintf( df, "[DEBUG] %02d-%02d %02d:%02d - %s:%3d | " FMT, \
 			lt->tm_mon + 1, lt->tm_mday, \
 			lt->tm_hour, lt->tm_min, \
 			__FILE__, __LINE__, \
@@ -41,7 +41,7 @@ namespace blytz {
 	df = fopen("/tmp/blytz-debug.log", "a"); \
 	fflush(df);\
 	\
-	fprintf( df, "[WARN] %02d-%02d %02d:%02d - %s:%d | " FMT, \
+	fprintf( df, "[WARN] %02d-%02d %02d:%02d - %s:%3d | " FMT, \
 			lt->tm_mon + 1, lt->tm_mday, \
 			lt->tm_hour, lt->tm_min, \
 			__FILE__, __LINE__, \
@@ -61,7 +61,7 @@ namespace blytz {
 	df = fopen("/tmp/blytz-debug.log", "a"); \
 	fflush(df);\
 	\
-	fprintf( df, "[ERROR] %02d-%02d %02d:%02d - %s:%d | " FMT, \
+	fprintf( df, "[ERROR] %02d-%02d %02d:%02d - %s:%3d | " FMT, \
 			lt->tm_mon + 1, lt->tm_mday, \
 			lt->tm_hour, lt->tm_min, \
 			__FILE__, __LINE__, \
@@ -78,7 +78,7 @@ namespace blytz {
 	time_t t = time(0); \
 	tm* lt = localtime(&t); \
 	\
-	fprintf( stdout, "[DEBUG] %02d-%02d %02d:%02d - %s:%d | " FMT, \
+	fprintf( stdout, "[DEBUG] %02d-%02d %02d:%02d - %s:%3d | " FMT, \
 			lt->tm_mon + 1, lt->tm_mday, \
 			lt->tm_hour, lt->tm_min, \
 			__FILE__, __LINE__, \
@@ -92,7 +92,7 @@ namespace blytz {
 	time_t t = time(0); \
 	tm* lt = localtime(&t); \
 	\
-	fprintf( stdout, "[WARN] %02d-%02d %02d:%02d - %s:%d | " FMT, \
+	fprintf( stdout, "[WARN] %02d-%02d %02d:%02d - %s:%3d | " FMT, \
 			lt->tm_mon + 1, lt->tm_mday, \
 			lt->tm_hour, lt->tm_min, \
 			__FILE__, __LINE__, \
@@ -106,7 +106,7 @@ namespace blytz {
 	time_t t = time(0); \
 	tm* lt = localtime(&t); \
 	\
-	fprintf( stdout, "[ERROR] %02d-%02d %02d:%02d - %s:%d | " FMT, \
+	fprintf( stdout, "[ERROR] %02d-%02d %02d:%02d - %s:%3d | " FMT, \
 			lt->tm_mon + 1, lt->tm_mday, \
 			lt->tm_hour, lt->tm_min, \
 			__FILE__, __LINE__, \

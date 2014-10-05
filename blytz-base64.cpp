@@ -1,6 +1,12 @@
 // adapted from
 // https://raw.githubusercontent.com/exabytes18/OpenSSL-Base64/master/base64.c
 
+// Encodes and decodes base64 strings
+//
+// We use the openssl library to perform the coding. When encoding, it adds
+// a newline at the end of the encoded string, for decoding it expects this
+// newline at the end or the decoding won't work.
+
 #include <openssl/bio.h>
 #include <openssl/evp.h>
 
@@ -48,19 +54,18 @@ char *b64_encode(const char *str, bool use_newlines) {
 
 	 unsigned long len = strlen(str);
 
+	 printfd( "encoding \"%s\" (%lu chars), using newlines: %s\n", str, 
+			 len, use_newlines ? "true" : "false");
+
 	 // add a newline at the end (to be compatible with openssl)
 	 len++;
 	 char *strnl = (char *) calloc(1, len);
 	 strcpy(strnl, str);
 	 strcat(strnl, "\n");
 
-	 printfd( "encoding \"%s\" (%lu chars), using newlines: %s\n", strnl, 
-			 len, use_newlines ? "true" : "false");
-
 	 unsigned int enclen = b64_get_encoded_len(strnl, use_newlines);
 
-	 // +1 for zero-terminator and +1 for newline at the end (added automatically
-	 // by openssl)
+	 // +1 for zero-terminator and +1 for newline at the end 
 	 char *buffer = (char *) calloc(1, enclen + 2);
 
 	 // file stream to buffer
@@ -97,7 +102,7 @@ unsigned int get_decoded_len(const char* b64input) {
 	int padding = 0;
 
 	int nnls = len / B64_MAX_LINE_LEN;
-	printfd( "number of newlines in decoded str: %d\n", nnls);
+	printfd( "number of newlines in encoded str: %d\n", nnls);
 	 
 	if (b64input[len - 1] == '=')
 		padding = 1;
@@ -105,23 +110,30 @@ unsigned int get_decoded_len(const char* b64input) {
 	if (b64input[len - 2] == '=')
 		padding++;
 	 
-	return floor( (len - padding) * 0.75) - nnls;
+	int declen = floor((len - padding) * 0.75);
+
+	// the newlines in the base64-encoded string are mandatory
+	// and unrelated to the newlines in the decoded string
+	// so don't count them.
+	// -1 because we assume the encoded string was obtained by adding
+	// a newline at the end of the original string for openssl compatibility
+	return declen - nnls - 1;
 }
 
+// decodes
 char *b64_decode(const char *str, bool use_newlines) {
 
 	 BIO *bio, *b64;
 
-	 printfd( "decoding \"%s\", using newlines: %s\n", str, 
-			 use_newlines ? "true" : "false");
+	 printfd( "decoding \"%s\" (%lu chars), using newlines: %s\n", str, 
+			 strlen(str), use_newlines ? "true" : "false");
+
+	 unsigned int declen = get_decoded_len(str);
+	 printfd( "calc. length of decoded string: %d\n", declen);
 
 	 unsigned int len = strlen(str);
 
-	 // -1 as we ignore the newline at the end
-	 unsigned int declen = get_decoded_len(str) - 1;
-	 printfd( "calc. length of decoded string: %d\n", declen);
-
-	 // add a newline at the end (to be compatible with openssl)
+	 // add a newline at the end (openssl compatibility)
 	 len++;
 	 char *strnl = (char *) calloc(1, len);
 	 strcpy(strnl, str);
