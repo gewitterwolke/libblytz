@@ -18,9 +18,9 @@
 #include "blytz-base64.h"
 #include "blytz-debug.h"
 
-unsigned int b64_get_encoded_len(const char *in, bool use_newlines) {
+unsigned int b64_get_encoded_len(unsigned int len, bool use_newlines) {
 
-	int len = strlen(in);
+	// int len = strlen(in);
 
 	// number of newlines in output
 	unsigned int nnls = len / ( B64_MAX_LINE_LEN * 0.75);
@@ -41,29 +41,45 @@ unsigned int b64_get_encoded_len(const char *in, bool use_newlines) {
 	return enclen;
 }
 
-unsigned int b64_get_encoded_len(const char *in) {
-	return b64_get_encoded_len(in, true);
+unsigned int b64_get_encoded_len(unsigned int len) {
+	return b64_get_encoded_len(len, true);
 }
 
-char *b64_encode(const char *str) {
-	return b64_encode(str, true);
+char *b64_encode(const char *str, unsigned int len) {
+	return b64_encode(str, len, true, true);
 }
 
-char *b64_encode(const char *str, bool use_newlines) {
+char *b64_encode_wo_trailing_nl(const char *str, unsigned int len) {
+	return b64_encode(str, len, true, false);
+}
+
+char *b64_encode(const char *str, unsigned int len,
+		bool use_newlines, bool trailing_newline) {
+
 	 BIO *bio, *b64;
 
-	 unsigned long len = strlen(str);
+	 if (trailing_newline)
+		 printfd("Using trailing newline\n");
 
-	 printfd( "encoding \"%s\" (%lu chars), using newlines: %s\n", str, 
+	 //unsigned long len = strlen(str);
+	 if (strlen(str) > len) {
+		 printfe("Provided string is longer than given length (%lu > %du)\n",
+				 strlen(str), len);
+		 return "";
+	 }
+
+	 printfd( "Encoding \"%s\" (%d chars), using newlines: %s\n", str, 
 			 len, use_newlines ? "true" : "false");
 
 	 // add a newline at the end (to be compatible with openssl)
-	 len++;
-	 char *strnl = (char *) calloc(1, len);
+	 if (trailing_newline)
+		 len++;
+	 char *strnl = (char *) calloc(1, len + 1);
 	 strcpy(strnl, str);
-	 strcat(strnl, "\n");
+	 if (trailing_newline)
+		 strcat(strnl, "\n");
 
-	 unsigned int enclen = b64_get_encoded_len(strnl, use_newlines);
+	 unsigned int enclen = b64_get_encoded_len(len, use_newlines);
 
 	 // +1 for zero-terminator and +1 for newline at the end 
 	 char *buffer = (char *) calloc(1, enclen + 2);
@@ -102,7 +118,7 @@ unsigned int get_decoded_len(const char* b64input) {
 	int padding = 0;
 
 	int nnls = len / B64_MAX_LINE_LEN;
-	printfd( "number of newlines in encoded str: %d\n", nnls);
+	printfd( "newlines in encoded str: %d\n", nnls);
 	 
 	if (b64input[len - 1] == '=')
 		padding = 1;

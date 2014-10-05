@@ -1,8 +1,11 @@
 #include <string.h>
 
 #include "blytz-base64.h"
+#include "blytz-enc.h"
 
 #include <gtest/gtest.h>
+
+using namespace blytz;
 
 TEST(Base64Test, EncLength) {
 	// caution: newline at the end mandatory for this test
@@ -41,9 +44,26 @@ TEST(Base64Test, EncodeSample1) {
 	EXPECT_STREQ(b64_encode("fsk"), "ZnNrCg==");
 	EXPECT_STREQ(b64_encode("asdf"), "YXNkZgo=");
 	EXPECT_STREQ(b64_encode("weoir"), "d2VvaXIK");
+
+	EXPECT_STREQ(b64_encode("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrs"), 
+				"YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXphYmNkZWZnaGlqa2xtbm9wcXJzCg==");
+
 	EXPECT_STREQ(b64_encode("fskaslkdsajfldsjfldsjfdslkjfdhehesdflkjfdldlsdkjfldsjfljdslkjfdslksj"), 
 			"ZnNrYXNsa2RzYWpmbGRzamZsZHNqZmRzbGtqZmRoZWhlc2RmbGtqZmRsZGxzZGtq\nZmxkc2pmbGpkc2xramZkc2xrc2oK");
 }
+
+TEST(EncTest, EncSample1) {
+	const char *str = "asdfjkl";
+	const char *pwd = "test123";
+
+	//const char *enc = encrypt(str, pwd);
+	//printf("%s\n", enc);
+  const char *dec = decrypt("U2FsdGVkX18eukOXg8omJmN8SVhffIuEaZMXvu1JG0o=", pwd);
+
+	EXPECT_STREQ(dec, str);
+}
+/*
+*/
 
 int main(int argc, char **argv) {
 	::testing::InitGoogleTest(&argc, argv);

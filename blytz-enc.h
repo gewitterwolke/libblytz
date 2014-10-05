@@ -1,12 +1,15 @@
 namespace blytz {
 #define SALTSTR_LEN 8
 #define SALT_LEN 8
-	char *get_dat(const char *str);
-	char *get_salt(const char *str);
-	char *get_keystr(const char *key, const char *salt);
+	unsigned char *get_dat(const char *str, unsigned int len);
+	unsigned char *get_salt(const char *str);
+	unsigned char *get_keystr(const unsigned char *key, unsigned int len, 
+			const unsigned char *salt);
 	char *read_keystr_b64(const char *keystr, const char *pwd);
 
 	const char INVALID_PASSWORD[] =  "---";
-	const char * encrypt(const char *str, const char *pwd);
-	const char * decrypt(const char *str, const char *pwd);
+	const char *encrypt(const char *str, const char *pwd);
+	static const char *encrypt(const char *str, const char *pwd, bool replace_newlines);
+	const char *decrypt(const char *str, const char *pwd);
+	static const char *decrypt(const char *str, const char *pwd, bool replace_newlines);
 }

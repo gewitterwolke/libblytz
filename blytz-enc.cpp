@@ -1,3 +1,6 @@
+// copied and adapted from
+// https://svn.cs.clemson.edu/repos/JSORBER_CPSC3600-S14/security/openssl_aes.c
+
 #include <openssl/evp.h>
 #include <openssl/aes.h>
 #include <openssl/rand.h>
@@ -7,6 +10,8 @@
 #include "blytz-enc.h"
 #include "blytz-base64.h"
 #include "blytz-debug.h"
+
+// Caution: logging in here is a security risk
 
 namespace blytz {
 
@@ -93,37 +98,76 @@ namespace blytz {
 		return plaintext;
 	}
 
+	const char *encrypt(const char *str, const char *pwd) {
+		return encrypt(str, pwd, true);
+	}
+
 	// encrypt message str using password pwd using AES and Base64 and password
 	// pwd
 	// (replaces newlines with '!' after Base64 encryption
-	const char *encrypt(const char *str, const char *pwd) {
+	const char *encrypt(const char *str, const char *pwd, bool replace_newlines) {
 
-		unsigned char *salt = (unsigned char *)malloc(SALT_LEN);
-		RAND_bytes(salt, SALT_LEN);
+		unsigned char *salt = (unsigned char *) malloc(SALT_LEN);
+		//RAND_bytes(salt, SALT_LEN);
+
+		salt[0] = 1;
+		salt[1] = 1;
+		salt[2] = 1;
+		salt[3] = 1;
+		salt[4] = 1;
+		salt[5] = 1;
+		salt[6] = 1;
+		salt[7] = 1;
+		/*
+		*/
+
+		/*
+		int test[1000];
+		for (int i = 0; i < SALT_LEN; i++) {
+			test[i] = salt[i];
+			printf("%02x ", test[i]);
+		}
+
+		printf("\n");
+		*/
 
 		unsigned int pwdlen = strlen(pwd);
 
 		EVP_CIPHER_CTX en, de;
 
 		if (aes_init((unsigned char *)pwd, pwdlen, salt, &en, &de)) {
-			printfd("Couldn't initialize AES cipher\n");
+			printfe("Couldn't initialize AES cipher\n");
 			return INVALID_PASSWORD;
 		}
 
+		printfd("Encrypting %s with salt %s and pwd %s\n", str, salt, pwd);
+
 		int len = strlen(str);
+		printfd("Length to encrypt: %d\n", len);
+
 		unsigned char *dat = aes_encrypt(&en, (unsigned char *)str, &len);
 
-		char *keystr = get_keystr((const char *)dat, (const char *)salt);
-		char *enc = b64_encode(keystr, false);
+		unsigned char *keystr = get_keystr((const unsigned char*)dat, 
+				(unsigned int)len, salt);
 
+		printfd("Keystr: %s\n", keystr);
+		for (int i = 0; i < len; i++) {
+			printf("%02x ", dat[i]);
+		}
+		printf("\n");
 		/*
+		*/
+
+		char *enc = b64_encode_wo_trailing_nl((char *)keystr, 16 + len);
+
 		// replace newlines
-		for (unsigned int i = 0; i < strlen(enc); i++) {
-			if (enc[i] == '\n') {
-				enc[i] = '!';
+		if (replace_newlines) {
+			for (unsigned int i = 0; i < strlen(enc); i++) {
+				if (enc[i] == '\n') {
+					enc[i] = '!';
+				}
 			}
 		}
-		*/
 
 		free(keystr);
 		free(salt);
@@ -132,23 +176,25 @@ namespace blytz {
 		return enc;
 	}
 
+	const char *decrypt(const char *str, const char *pwd) {
+		return decrypt(str, pwd, true);
+	}
+
 	// decrypt a AES and Base64 encoded message str using password pwd
 	// (replaces '!' with '\n' before decryption assuming they have been added by
 	// encrypt() or BLYTZ App before)
 	// 
-	const char *decrypt(const char *str, const char *pwd) {
+	const char *decrypt(const char *str, const char *pwd, bool replace_newlines) {
 
 		char *str2 = (char *) calloc(1, strlen(str));
 		//strcpy(str2, str);
 
-		// strip leading and trailing quotation marks
-		/*
-		unsigned int j = 0;
-		for (unsigned int i = 0; i < strlen(str); i++) {
+		// strip leading and trailing quotation marks and replace newlines
+		for (unsigned int i = 0, j = 0; i < strlen(str); i++) {
 
 			char c = str[i];
 
-			if (c == '!') {
+			if (c == '!' && replace_newlines) {
 				str2[j++] = '\n';
 			} else if (c == '\"') {
 				
@@ -156,24 +202,21 @@ namespace blytz {
 				str2[j++] = c;
 			}
 		}
-		*/
 
 		bool has_newlines = false;
 		if (strstr(str, "\n")) {
 			has_newlines = true;
 		}
 
-		strncpy(str2, str + 1, strlen(str) - 2);
-
 		// debug output
-		//FILE *f = fopen("/tmp/debugenc.txt", "a");
-		printfd( "Incoming string for decryption (after replacing '!')\n");
-		printfd( "%s\n", str2);
+		printfd( "Incoming string for decryption (after replacing '!'): %s\n", str2);
 
 		char *dec = b64_decode(str2, has_newlines);
-		char *salt = get_salt(dec);
+		unsigned char *salt = get_salt(dec);
 
-		printfd( "base64 decoded: %s\n", dec);
+		printfd("Salt :%s\n", salt);
+
+		printfd( "Base64 decoded: %s\n", dec);
 
 		unsigned int pwdlen = strlen(pwd);
 
@@ -186,12 +229,16 @@ namespace blytz {
 			return INVALID_PASSWORD;
 		}
 
-		char *dat = get_dat(dec);
-		int len = strlen(dat) - strlen(salt);
-		len = strlen(dat);
+		int len = get_decoded_len(str2);
+
+		unsigned char *dat = get_dat(dec, len);
+		//int len = declen - strlen(salt);
+		//len = strlen(dat);
 
 		// actual AES decryption
 		unsigned char *plain = aes_decrypt(&de, (unsigned char *)dat, &len);
+
+		printfd("Decrypted String: %s\n", plain);
 
 		free(salt);
 		free(dec);
@@ -201,118 +248,53 @@ namespace blytz {
 		return (char *)plain;
 	}
 
-	/*
-		 void enctest() {
-		 FILE *f = fopen("/tmp/enctest.txt", "w");
-		 EVP_CIPHER_CTX en, de;
-//int salt[] = {1111, 1111};
-unsigned int salt[] = {0x01010101, 0x01010101};
-unsigned char *key_data;
-int key_data_len, i;
-key_data = (unsigned char *)"test123";
-key_data_len = strlen((const char*)key_data);
+	unsigned char *get_salt(const char *str) {
 
-if (aes_init(key_data, key_data_len, (unsigned char *)&salt, &en, &de)) {
-printf("Couldn't initialize AES cipher\n");
-return;
-}
-
-unsigned char *ciphertext;
-const char *dat = "testhehe2";
-int len = strlen(dat);
-ciphertext = aes_encrypt(&en, (unsigned char *)dat, &len);
-//printf((const char*)ciphertext);
-
-char osslstr[1024];
-strcpy( osslstr, "Salted__");
-int salted_len = strlen( "Salted__");
-osslstr[salted_len ] = 1;
-osslstr[salted_len + 1] = 1;
-osslstr[salted_len + 2] = 1;
-osslstr[salted_len + 3] = 1;
-osslstr[salted_len + 4] = 1;
-osslstr[salted_len + 5] = 1;
-osslstr[salted_len + 6] = 1;
-osslstr[salted_len + 7] = 1;
-strcpy( osslstr + salted_len + 8, (const char *)ciphertext);
-
-char *b64 = b64_encode((const char *)osslstr);
-//printf("%s\n", b64);
-
-//printf( read_keystr_b64("U2FsdGVkX18BAQEBAQEBARzEvge7iJbvaKv0u8NCcAM="));
-
-//decrypt("U2FsdGVkX18BAQEBAQEBARzEvge7iJbvaKv0u8NCcAM=", "test123");
-encrypt("testhehe2", "test123");
-decrypt("U2FsdGVkX18BAQEBAQEBAZBgm8H8YjYnliVa0uc/7A8=", "test123");
-return;
-*/
-
-/*
-	 char *keystr = read_keystr_b64("U2FsdGVkX18BAQEBAQEBARzEvge7iJbvaKv0u8NCcAM=");
-	 printf("%s\n", keystr);
-
-	 char *key = get_key(keystr);
-	 char *sl = get_salt(keystr);
-
-	 char *keystr2 = get_keystr(key, sl);
-	 char *enc2 = b64_encode(keystr2);
-	 printf(enc2);
-	 */
-
-/*
-	 char *bla = b64_decode(b64);
-
-	 char *key = get_key(bla);
-	 char *sl = get_salt(bla);
-	 char *keystr = get_keystr(key, sl);
-	 printf("%s\n", keystr);
-
-	 b64 = b64_encode((const char *)keystr);
-	 printf(b64);
-	 */
-
-/*
-	 return;
-	 }
-	 */
-
-	char *get_salt(const char *str) {
-
-		char *salt = (char *)malloc(SALT_LEN);
+		unsigned char *salt = (unsigned char *)malloc(SALT_LEN);
 		memcpy( salt, str + SALTSTR_LEN, SALT_LEN);
 		return salt;
 	}
 
-	char *get_dat(const char *str) {
+	unsigned char *get_dat(const char *str, unsigned int len) {
 
-		unsigned int dat_len = strlen(str) - SALT_LEN;
+		unsigned int dat_len = len - SALT_LEN - SALTSTR_LEN;
 
-		char *dat = (char *)malloc(dat_len);
+		unsigned char *dat = (unsigned char *)malloc(dat_len);
 		memcpy( dat, str + SALTSTR_LEN + SALT_LEN, dat_len);
 		return dat;
 	}
 
 	// create an openssl-compatible key
-	char *get_keystr(const char *dat, const char *salt) {
+	unsigned char *get_keystr(const unsigned char *dat, unsigned int len, 
+			const unsigned char *salt) {
 
-		char *keystr = (char *)malloc(32);
-		strcpy( keystr, "Salted__");
+		unsigned int totlen = len + SALTSTR_LEN + SALT_LEN;
+		printfd("Length of enc data: %d\n", len);
+
+		unsigned char *keystr = (unsigned char *)calloc(1, totlen);
+
+		char saltstr[] = "Salted__";
+		memcpy( keystr, saltstr, SALTSTR_LEN);
 		memcpy( keystr + SALTSTR_LEN, salt, SALT_LEN);
-		memcpy( keystr + SALTSTR_LEN + SALT_LEN, dat, strlen(dat));
+		memcpy( keystr + SALTSTR_LEN + SALT_LEN, dat, len);
+
+		for (int i = 0; i < totlen; i++) {
+			printf("%02x ", keystr[i]);
+		}
+		printf("\n");
 		return keystr;
 	}
 
 	// read a base64-encoded key string (in openssl-compatible format)
-	char *read_keystr_b64(const char *keystr) {
+	unsigned char *read_keystr_b64(const char *keystr, unsigned int len) {
 
 		const char *dec = b64_decode(keystr);
-		char *dat = get_dat(dec);
-		char *salt = get_salt(dec);
-		char *keystr_dec = get_keystr(dat, salt);
+		unsigned char *salt = (unsigned char *)get_salt(dec);
+		unsigned char *dat = (unsigned char *)get_dat(dec, len);
+		unsigned char *keystr_dec = get_keystr(dat, len, salt);
 		free(dat);
 		free(salt);
 		return keystr_dec;
 	}
 
 }
-
