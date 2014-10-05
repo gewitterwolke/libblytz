@@ -20,10 +20,8 @@
 
 unsigned int b64_get_encoded_len(unsigned int len, bool use_newlines) {
 
-	// int len = strlen(in);
-
 	// number of newlines in output
-	unsigned int nnls = len / ( B64_MAX_LINE_LEN * 0.75);
+	unsigned int nnls = len / ( (B64_MAX_LINE_LEN) * 0.75 + 1);
 
 	if (use_newlines) {
 		printfd("newlines in encoded string: %d\n", nnls);
@@ -117,8 +115,8 @@ unsigned int get_decoded_len(const char* b64input) {
 	unsigned int len = strlen(b64input);
 	int padding = 0;
 
-	int nnls = len / B64_MAX_LINE_LEN;
-	printfd( "newlines in encoded str: %d\n", nnls);
+	int nnls = len / (B64_MAX_LINE_LEN + 1);
+	printfd( "newlines in decoded str: %d\n", nnls);
 	 
 	if (b64input[len - 1] == '=')
 		padding = 1;

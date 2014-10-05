@@ -107,6 +107,7 @@ namespace blytz {
 	// (replaces newlines with '!' after Base64 encryption
 	const char *encrypt(const char *str, const char *pwd, bool replace_newlines) {
 
+
 		unsigned char *salt = (unsigned char *) malloc(SALT_LEN);
 		//RAND_bytes(salt, SALT_LEN);
 
@@ -140,23 +141,26 @@ namespace blytz {
 			return INVALID_PASSWORD;
 		}
 
-		printfd("Encrypting %s with salt %s and pwd %s\n", str, salt, pwd);
-
 		int len = strlen(str);
+		char *strnl = (char *) calloc(1, len + 1);
+		strcpy(strnl, str);
+		strcat(strnl, "\n");
+		len++;
 		printfd("Length to encrypt: %d\n", len);
 
-		unsigned char *dat = aes_encrypt(&en, (unsigned char *)str, &len);
+		printfd("Encrypting %s with salt %s and pwd %s\n", strnl, salt, pwd);
 
-		unsigned char *keystr = get_keystr((const unsigned char*)dat, 
-				(unsigned int)len, salt);
+		unsigned char *dat = aes_encrypt(&en, (unsigned char *)strnl, &len);
 
-		printfd("Keystr: %s\n", keystr);
+		printf("Enc dat:\n");
 		for (int i = 0; i < len; i++) {
 			printf("%02x ", dat[i]);
 		}
 		printf("\n");
-		/*
-		*/
+		unsigned char *keystr = get_keystr((const unsigned char*)dat, 
+				(unsigned int)len, salt);
+
+		printf("Keystr: %s\n", keystr);
 
 		char *enc = b64_encode_wo_trailing_nl((char *)keystr, 16 + len);
 
