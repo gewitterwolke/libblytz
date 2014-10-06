@@ -107,7 +107,6 @@ namespace blytz {
 	// (replaces newlines with '!' after Base64 encryption
 	const char *encrypt(const char *str, const char *pwd, bool replace_newlines) {
 
-
 		unsigned char *salt = (unsigned char *) malloc(SALT_LEN);
 		//RAND_bytes(salt, SALT_LEN);
 
@@ -142,28 +141,31 @@ namespace blytz {
 		}
 
 		int len = strlen(str);
+		printfd("Length to encrypt: %d\n", len);
+
 		char *strnl = (char *) calloc(1, len + 1);
 		strcpy(strnl, str);
 		strcat(strnl, "\n");
 		len++;
-		printfd("Length to encrypt: %d\n", len);
 
 		printfd("Encrypting %s with salt %s and pwd %s\n", strnl, salt, pwd);
 
 		unsigned char *dat = aes_encrypt(&en, (unsigned char *)strnl, &len);
 
-		printf("Enc dat:\n");
-		for (int i = 0; i < len; i++) {
-			printf("%02x ", dat[i]);
-		}
-		printf("\n");
+		// printf("Enc dat:\n");
+		// for (int i = 0; i < len; i++) {
+		// 	printf("%02x ", dat[i]);
+		// }
+		// printf("\n");
+
 		unsigned char *keystr = get_keystr((const unsigned char*)dat, 
 				(unsigned int)len, salt);
 
-		printf("Keystr: %s\n", keystr);
+		// printf("Keystr: %s\n", keystr);
 
-		//char *enc = b64_encode_wo_trailing_nl((char *)keystr, 16 + len);
-		char *enc = b64_encode((char *)keystr, 16 + len);
+		char *enc = b64_encode_wo_trailing_nl((char *)keystr, 
+				SALTSTR_LEN + SALT_LEN + len);
+		//char *enc = b64_encode((char *)keystr, SALTSTR_LEN + SALT_LEN + len);
 
 		// replace newlines
 		if (replace_newlines) {
@@ -239,11 +241,12 @@ namespace blytz {
 
 		unsigned char *dat = get_dat(dec, len);
 
-		printf("dat to decrypt:\n");
-		for (int i = 0; i < len; i++) {
-			printf("%02x ", dat[i]);
-		}
-		printf("\n");
+		// printf("dat to decrypt:\n");
+		// for (int i = 0; i < len; i++) {
+		// 	printf("%02x ", dat[i]);
+		// }
+		// printf("\n");
+		
 		//int len = declen - strlen(salt);
 		//len = strlen(dat);
 		
@@ -258,6 +261,9 @@ namespace blytz {
 		free(dec);
 		free(dat);
 		free(str2);
+
+		// remove trailing newline
+		plain[len - 1] = '\0';
 
 		return (char *)plain;
 	}
@@ -302,10 +308,10 @@ namespace blytz {
 		memcpy( keystr + SALTSTR_LEN, salt, SALT_LEN);
 		memcpy( keystr + SALTSTR_LEN + SALT_LEN, dat, len);
 
-		for (int i = 0; i < totlen; i++) {
-			printf("%02x ", keystr[i]);
-		}
-		printf("\n");
+		// for (int i = 0; i < totlen; i++) {
+		// 	printf("%02x ", keystr[i]);
+		// }
+		// printf("\n");
 		return keystr;
 	}
 

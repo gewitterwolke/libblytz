@@ -25,6 +25,9 @@ unsigned int b64_get_encoded_len(unsigned int len, bool use_newlines) {
 	// number of newlines in output
 	unsigned int nnls = len / ( (B64_MAX_LINE_LEN) * 0.75 + 1);
 
+	// printfd("len: %d / %d = %lf\n", len, (int)((B64_MAX_LINE_LEN) * 0.75 + 1), 
+	//		len / ( (B64_MAX_LINE_LEN) * 0.75 + 1));
+
 	if (use_newlines) {
 		printfd("newlines in encoded string: %d\n", nnls);
 	}
@@ -51,6 +54,11 @@ char *b64_encode(const char *str, unsigned int len) {
 
 char *b64_encode_wo_trailing_nl(const char *str, unsigned int len) {
 	return b64_encode(str, len, true, false);
+}
+
+char *b64_encode(const char *str) {
+	unsigned int len = strlen(str);
+	return b64_encode(str, len, true, true);
 }
 
 char *b64_encode(const char *str, unsigned int len,
@@ -137,20 +145,32 @@ unsigned int get_decoded_len(const char* b64input) {
 }
 
 char *b64_decode_nnl(const char *str, unsigned int *len, bool use_newlines) {
-	return b64_decode(str, len, use_newlines, true);
+	return b64_decode(str, len, use_newlines, false);
+}
+
+char *b64_decode(const char *str) {
+	unsigned int unused;
+	return b64_decode(str, &unused, true, true);
+}
+
+char *b64_decode(const char *str, unsigned int *len) {
+	return b64_decode(str, len, true, true);
 }
 
 // decodes a base64 encoded string
 char *b64_decode(const char *str, unsigned int *declen, 
-		bool use_newlines, bool no_trailing_nl) {
+		bool use_newlines, bool trailing_newline) {
 
 	 BIO *bio, *b64;
 
 	 printfd( "decoding \"%s\" (%lu chars), using newlines: %s\n", str, 
 			 strlen(str), use_newlines ? "true" : "false");
 
+	 if (trailing_newline)
+		 printfd("Using trailing newline\n");
+
 	 unsigned int ldeclen = get_decoded_len(str);
-	 if (no_trailing_nl)
+	 if (!trailing_newline)
 		 ldeclen++;
 	 printfd( "calc. length of decoded string: %d\n", ldeclen);
 
@@ -194,8 +214,4 @@ char *b64_decode(const char *str, unsigned int *declen,
 	 *declen = ldeclen;
 	   
 	 return buffer;
-}
-
-char *b64_decode(const char *str, unsigned int *len) {
-	return b64_decode(str, len, true, false);
 }

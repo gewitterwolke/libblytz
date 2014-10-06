@@ -10,7 +10,7 @@ namespace blytz {
 
 	const char INVALID[] =  "---";
 	const char *encrypt(const char *str, const char *pwd);
-	static const char *encrypt(const char *str, const char *pwd, bool replace_newlines);
+	const char *encrypt(const char *str, const char *pwd, bool replace_newlines);
 	const char *decrypt(const char *str, const char *pwd);
-	static const char *decrypt(const char *str, const char *pwd, bool replace_newlines);
+	const char *decrypt(const char *str, const char *pwd, bool replace_newlines);
 }
