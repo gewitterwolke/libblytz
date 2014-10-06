@@ -75,5 +75,6 @@ namespace blytz {
 	bool has_connection_old();
 	bool has_credentials();
 	bool has_credentials_old();
+
 }
 #endif

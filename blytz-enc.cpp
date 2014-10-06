@@ -60,7 +60,7 @@ namespace blytz {
 	unsigned char *aes_encrypt(EVP_CIPHER_CTX *e, unsigned char *plaintext, 
 			int *len) {
 
-		// max ciphertext len for a n bytes of plaintext is n + AES_BLOCK_SIZE -1 bytes
+		// max ciphertext len for n bytes of plaintext is n + AES_BLOCK_SIZE -1 bytes
 		int c_len = *len + AES_BLOCK_SIZE, f_len = 0;
 		unsigned char *ciphertext = (unsigned char *)malloc(c_len);
 
@@ -138,7 +138,7 @@ namespace blytz {
 
 		if (aes_init((unsigned char *)pwd, pwdlen, salt, &en, &de)) {
 			printfe("Couldn't initialize AES cipher\n");
-			return INVALID_PASSWORD;
+			return INVALID;
 		}
 
 		int len = strlen(str);
@@ -162,7 +162,8 @@ namespace blytz {
 
 		printf("Keystr: %s\n", keystr);
 
-		char *enc = b64_encode_wo_trailing_nl((char *)keystr, 16 + len);
+		//char *enc = b64_encode_wo_trailing_nl((char *)keystr, 16 + len);
+		char *enc = b64_encode((char *)keystr, 16 + len);
 
 		// replace newlines
 		if (replace_newlines) {
@@ -213,14 +214,17 @@ namespace blytz {
 		}
 
 		// debug output
-		printfd( "Incoming string for decryption (after replacing '!'): %s\n", str2);
+		printfd("Incoming string for decryption (after replacing '!'): %s\n", str2);
 
-		char *dec = b64_decode(str2, has_newlines);
-		unsigned char *salt = get_salt(dec);
+		unsigned int len; // = get_decoded_len(str2);
+		//printfd("Estimated length of decoded: %d\n", len);
 
-		printfd("Salt :%s\n", salt);
+		char *dec = b64_decode_nnl(str2, &len, has_newlines);
+		unsigned char *salt = get_salt(dec, len);
 
-		printfd( "Base64 decoded: %s\n", dec);
+		printfd("Salt: %s\n", salt);
+
+		printfd("Base64 decoded: %s\n", dec);
 
 		unsigned int pwdlen = strlen(pwd);
 
@@ -229,20 +233,26 @@ namespace blytz {
 		// initialize AES using salt from incoming string
 		if (aes_init((unsigned char *)pwd, pwdlen, (unsigned char *)salt, 
 					&en, &de)) {
-			printfd("Couldn't initialize AES cipher\n");
-			return INVALID_PASSWORD;
+			printfe("Couldn't initialize AES cipher\n");
+			return INVALID;
 		}
 
-		int len = get_decoded_len(str2);
-
 		unsigned char *dat = get_dat(dec, len);
+
+		printf("dat to decrypt:\n");
+		for (int i = 0; i < len; i++) {
+			printf("%02x ", dat[i]);
+		}
+		printf("\n");
 		//int len = declen - strlen(salt);
 		//len = strlen(dat);
+		
+		len -= (SALTSTR_LEN + SALT_LEN);
 
 		// actual AES decryption
-		unsigned char *plain = aes_decrypt(&de, (unsigned char *)dat, &len);
+		unsigned char *plain = aes_decrypt(&de, (unsigned char *)dat, (int *)&len);
 
-		printfd("Decrypted String: %s\n", plain);
+		printfd("Decrypted String: %s (length: %d)\n", plain, len);
 
 		free(salt);
 		free(dec);
@@ -252,14 +262,24 @@ namespace blytz {
 		return (char *)plain;
 	}
 
-	unsigned char *get_salt(const char *str) {
+	unsigned char *get_salt(const char *str, unsigned int len) {
 
-		unsigned char *salt = (unsigned char *)malloc(SALT_LEN);
+		if (len < SALTSTR_LEN + SALT_LEN) {
+			printfe("Cannot get salt, data too short\n");
+			return (unsigned char *)ERR;
+		}
+
+		unsigned char *salt = (unsigned char *) calloc(1, SALT_LEN);
 		memcpy( salt, str + SALTSTR_LEN, SALT_LEN);
 		return salt;
 	}
 
 	unsigned char *get_dat(const char *str, unsigned int len) {
+
+		if (len < SALT_LEN + SALTSTR_LEN) {
+			printfe("Cannot get payload data, data too short\n");
+			return (unsigned char *)ERR;
+		}
 
 		unsigned int dat_len = len - SALT_LEN - SALTSTR_LEN;
 
@@ -292,8 +312,10 @@ namespace blytz {
 	// read a base64-encoded key string (in openssl-compatible format)
 	unsigned char *read_keystr_b64(const char *keystr, unsigned int len) {
 
-		const char *dec = b64_decode(keystr);
-		unsigned char *salt = (unsigned char *)get_salt(dec);
+		unsigned int declen;
+		const char *dec = b64_decode(keystr, &declen);
+
+		unsigned char *salt = (unsigned char *)get_salt(dec, declen);
 		unsigned char *dat = (unsigned char *)get_dat(dec, len);
 		unsigned char *keystr_dec = get_keystr(dat, len, salt);
 		free(dat);

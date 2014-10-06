@@ -18,6 +18,8 @@
 #include "blytz-base64.h"
 #include "blytz-debug.h"
 
+char ERR[] = "ERR";
+
 unsigned int b64_get_encoded_len(unsigned int len, bool use_newlines) {
 
 	// number of newlines in output
@@ -63,7 +65,7 @@ char *b64_encode(const char *str, unsigned int len,
 	 if (strlen(str) > len) {
 		 printfe("Provided string is longer than given length (%lu > %du)\n",
 				 strlen(str), len);
-		 return "";
+		 return ERR;
 	 }
 
 	 printfd( "Encoding \"%s\" (%d chars), using newlines: %s\n", str, 
@@ -134,27 +136,34 @@ unsigned int get_decoded_len(const char* b64input) {
 	return declen - nnls - 1;
 }
 
-// decodes
-char *b64_decode(const char *str, bool use_newlines) {
+char *b64_decode_nnl(const char *str, unsigned int *len, bool use_newlines) {
+	return b64_decode(str, len, use_newlines, true);
+}
+
+// decodes a base64 encoded string
+char *b64_decode(const char *str, unsigned int *declen, 
+		bool use_newlines, bool no_trailing_nl) {
 
 	 BIO *bio, *b64;
 
 	 printfd( "decoding \"%s\" (%lu chars), using newlines: %s\n", str, 
 			 strlen(str), use_newlines ? "true" : "false");
 
-	 unsigned int declen = get_decoded_len(str);
-	 printfd( "calc. length of decoded string: %d\n", declen);
+	 unsigned int ldeclen = get_decoded_len(str);
+	 if (no_trailing_nl)
+		 ldeclen++;
+	 printfd( "calc. length of decoded string: %d\n", ldeclen);
 
 	 unsigned int len = strlen(str);
 
 	 // add a newline at the end (openssl compatibility)
-	 //len++;
+	 len++;
 	 char *strnl = (char *) calloc(1, len);
 	 strcpy(strnl, str);
-	 //strcat(strnl, "\n");
+	 strcat(strnl, "\n");
 
 	 // +1 for zero-terminator and +1 for newline (added by openssl)
-	 char *buffer = (char*) calloc(1, declen + 2);
+	 char *buffer = (char*) calloc(1, ldeclen + 2);
 
 	 int readlen = 0;
 
@@ -172,19 +181,21 @@ char *b64_decode(const char *str, bool use_newlines) {
 	 readlen = BIO_read(bio, buffer, len);
 
 	 // remove trailing newline 
-	 buffer[declen] = '\0';
+	 buffer[ldeclen] = '\0';
 
 	 // force zero termination 
-	 buffer[declen + 1] = '\0';
+	 buffer[ldeclen + 1] = '\0';
 	  
 	 BIO_free_all(bio);
 	 fclose(stream);
 
-	 printfd("decoded string: %s\n", buffer);
+	 printfd("decoded string: %s (length: %d)\n", buffer, ldeclen);
+
+	 *declen = ldeclen;
 	   
 	 return buffer;
 }
 
-char *b64_decode(const char *str) {
-	return b64_decode(str, true);
+char *b64_decode(const char *str, unsigned int *len) {
+	return b64_decode(str, len, true, false);
 }
