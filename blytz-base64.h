@@ -5,7 +5,7 @@ unsigned int get_decoded_len(const char* b64input);
 
 char *b64_encode(const char *str);
 char *b64_encode(const char *str, unsigned int len);
-char *b64_encode_wo_trailing_nl(const char *str, unsigned int len);
+char *b64_encode_nnl(const char *str, unsigned int len);
 char *b64_encode(const char *str, unsigned int len,
 		bool use_newlines, bool trailing_newline);
 

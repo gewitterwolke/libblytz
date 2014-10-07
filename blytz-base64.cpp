@@ -52,7 +52,7 @@ char *b64_encode(const char *str, unsigned int len) {
 	return b64_encode(str, len, true, true);
 }
 
-char *b64_encode_wo_trailing_nl(const char *str, unsigned int len) {
+char *b64_encode_nnl(const char *str, unsigned int len) {
 	return b64_encode(str, len, true, false);
 }
 
@@ -71,9 +71,8 @@ char *b64_encode(const char *str, unsigned int len,
 
 	 //unsigned long len = strlen(str);
 	 if (strlen(str) > len) {
-		 printfe("Provided string is longer than given length (%lu > %du)\n",
+		 printfw("String (\"%s\") is longer than given length (%lu > %d)\n", str,
 				 strlen(str), len);
-		 return ERR;
 	 }
 
 	 printfd( "Encoding \"%s\" (%d chars), using newlines: %s\n", str, 
@@ -185,7 +184,7 @@ char *b64_decode(const char *str, unsigned int *declen,
 	 // +1 for zero-terminator and +1 for newline (added by openssl)
 	 char *buffer = (char*) calloc(1, ldeclen + 2);
 
-	 int readlen = 0;
+	 unsigned int readlen = 0;
 
 	 FILE *stream = fmemopen((void *)strnl, len, "r");
 	 bio = BIO_new_fp(stream, BIO_NOCLOSE);
@@ -199,6 +198,10 @@ char *b64_decode(const char *str, unsigned int *declen,
 	 bio = BIO_push(b64, bio);
 
 	 readlen = BIO_read(bio, buffer, len);
+
+	 if (readlen != ldeclen) {
+		 printfe("Read length does not match expected length\n");
+	 }
 
 	 // remove trailing newline 
 	 buffer[ldeclen] = '\0';

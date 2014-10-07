@@ -148,7 +148,7 @@ namespace blytz {
 		strcat(strnl, "\n");
 		len++;
 
-		printfd("Encrypting %s with salt %s and pwd %s\n", strnl, salt, pwd);
+		printfd("Encrypting %s with salt %.8s and pwd %s\n", strnl, salt, pwd);
 
 		unsigned char *dat = aes_encrypt(&en, (unsigned char *)strnl, &len);
 
@@ -163,7 +163,7 @@ namespace blytz {
 
 		// printf("Keystr: %s\n", keystr);
 
-		char *enc = b64_encode_wo_trailing_nl((char *)keystr, 
+		char *enc = b64_encode_nnl((char *)keystr, 
 				SALTSTR_LEN + SALT_LEN + len);
 		//char *enc = b64_encode((char *)keystr, SALTSTR_LEN + SALT_LEN + len);
 
@@ -224,7 +224,7 @@ namespace blytz {
 		char *dec = b64_decode_nnl(str2, &len, has_newlines);
 		unsigned char *salt = get_salt(dec, len);
 
-		printfd("Salt: %s\n", salt);
+		printfd("Salt: %.8s\n", salt);
 
 		printfd("Base64 decoded: %s\n", dec);
 
