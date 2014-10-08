@@ -178,12 +178,17 @@ char *b64_decode(const char *str, unsigned int *len_out, bool trailing_newline) 
 	 // check if the input contains newlines
 	 unsigned int len_in = strlen(str);
 	 bool use_newlines = false;
+	 if (strstr(str, "\n") != NULL)
+		 use_newlines = true;
+	 
+	 /*
 	 for (int i = 0; i < len_in; i++) {
 		 if (str[i] == '\n') {
 			 use_newlines = true;
 			 break;
 		 }
 	 }
+	 */
 
 	 printfd( "decoding \"%s\" (%lu chars), using newlines: %s\n", str, 
 			 strlen(str), use_newlines ? "true" : "false");

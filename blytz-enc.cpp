@@ -108,8 +108,9 @@ namespace blytz {
 	const char *encrypt(const char *str, const char *pwd, bool replace_newlines) {
 
 		unsigned char *salt = (unsigned char *) malloc(SALT_LEN);
-		//RAND_bytes(salt, SALT_LEN);
+		RAND_bytes(salt, SALT_LEN);
 
+		/*
 		salt[0] = 1;
 		salt[1] = 1;
 		salt[2] = 1;
@@ -118,7 +119,6 @@ namespace blytz {
 		salt[5] = 1;
 		salt[6] = 1;
 		salt[7] = 1;
-		/*
 		*/
 
 		/*
@@ -210,25 +210,12 @@ namespace blytz {
 			}
 		}
 
-		/*
-		bool has_newlines = false;
-		if (strstr(str, "\n")) {
-			has_newlines = true;
-		}
-		*/
-
-		// debug output
 		printfd("Incoming string for decryption (after replacing '!'): %s\n", str2);
 
-		unsigned int len; // = get_decoded_len(str2);
-		//printfd("Estimated length of decoded: %d\n", len);
+		unsigned int len;
 
 		char *dec = b64_decode_nnl(str2, &len);
 		unsigned char *salt = get_salt(dec, len);
-
-		printfd("Salt: %.8s\n", salt);
-
-		printfd("Base64 decoded: %s\n", dec);
 
 		unsigned int pwdlen = strlen(pwd);
 
@@ -242,15 +229,6 @@ namespace blytz {
 		}
 
 		unsigned char *dat = get_dat(dec, len);
-
-		// printf("dat to decrypt:\n");
-		// for (int i = 0; i < len; i++) {
-		// 	printf("%02x ", dat[i]);
-		// }
-		// printf("\n");
-		
-		//int len = declen - strlen(salt);
-		//len = strlen(dat);
 		
 		len -= (SALTSTR_LEN + SALT_LEN);
 
