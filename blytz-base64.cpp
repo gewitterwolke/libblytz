@@ -25,9 +25,6 @@ unsigned int b64_get_encoded_len(unsigned int len, bool use_newlines) {
 	// number of newlines in output
 	unsigned int nnls = len / ( (B64_MAX_LINE_LEN) * 0.75 + 1);
 
-	// printfd("len: %d / %d = %lf\n", len, (int)((B64_MAX_LINE_LEN) * 0.75 + 1), 
-	//		len / ( (B64_MAX_LINE_LEN) * 0.75 + 1));
-
 	if (use_newlines) {
 		printfd("newlines in encoded string: %d\n", nnls);
 	}
@@ -56,6 +53,10 @@ char *b64_encode_nnl(const char *str, unsigned int len) {
 	return b64_encode(str, len, true, false);
 }
 
+char *b64_encode(const char *str, unsigned int len, bool use_newlines) {
+	return b64_encode(str, len, use_newlines, true);
+}
+
 char *b64_encode(const char *str) {
 	unsigned int len = strlen(str);
 	return b64_encode(str, len, true, true);
@@ -69,7 +70,6 @@ char *b64_encode(const char *str, unsigned int len,
 	 if (trailing_newline)
 		 printfd("Using trailing newline\n");
 
-	 //unsigned long len = strlen(str);
 	 if (strlen(str) > len) {
 		 printfw("String (\"%s\") is longer than given length (%lu > %d)\n", str,
 				 strlen(str), len);
@@ -120,12 +120,16 @@ char *b64_encode(const char *str, unsigned int len,
 }
 
 // calculates the length of a decoded base64 string
-unsigned int get_decoded_len(const char* b64input) { 
+unsigned int b64_get_decoded_len(const char* b64input, bool use_newlines) { 
 	unsigned int len = strlen(b64input);
 	int padding = 0;
 
-	int nnls = len / (B64_MAX_LINE_LEN + 1);
-	printfd( "newlines in decoded str: %d\n", nnls);
+	int nnls = 0;
+
+	if (use_newlines) {
+    nnls = len / (B64_MAX_LINE_LEN + 1);
+		printfd( "newlines in encoded str: %d\n", nnls);
+	}
 	 
 	if (b64input[len - 1] == '=')
 		padding = 1;
@@ -143,6 +147,10 @@ unsigned int get_decoded_len(const char* b64input) {
 	return declen - nnls - 1;
 }
 
+unsigned int b64_get_decoded_len(const char* b64input) { 
+	return b64_get_decoded_len(b64input, true);
+}
+
 char *b64_decode_nnl(const char *str, unsigned int *len, bool use_newlines) {
 	return b64_decode(str, len, use_newlines, false);
 }
@@ -156,8 +164,12 @@ char *b64_decode(const char *str, unsigned int *len) {
 	return b64_decode(str, len, true, true);
 }
 
+char *b64_decode(const char *str, unsigned int *len, bool use_newlines) {
+	return b64_decode(str, len, use_newlines, true);
+}
+
 // decodes a base64 encoded string
-char *b64_decode(const char *str, unsigned int *declen, 
+char *b64_decode(const char *str, unsigned int *len_out,
 		bool use_newlines, bool trailing_newline) {
 
 	 BIO *bio, *b64;
@@ -168,25 +180,25 @@ char *b64_decode(const char *str, unsigned int *declen,
 	 if (trailing_newline)
 		 printfd("Using trailing newline\n");
 
-	 unsigned int ldeclen = get_decoded_len(str);
+	 unsigned int len_dec = b64_get_decoded_len(str, use_newlines);
 	 if (!trailing_newline)
-		 ldeclen++;
-	 printfd( "calc. length of decoded string: %d\n", ldeclen);
+		 len_dec++;
+	 printfd( "calc. length of decoded string: %d\n", len_dec);
 
-	 unsigned int len = strlen(str);
+	 unsigned int len_in = strlen(str);
 
-	 // add a newline at the end (openssl compatibility)
-	 len++;
-	 char *strnl = (char *) calloc(1, len);
+	 // add a trailing newline (openssl compatibility)
+	 len_in++;
+	 char *strnl = (char *) calloc(1, len_in);
 	 strcpy(strnl, str);
 	 strcat(strnl, "\n");
 
 	 // +1 for zero-terminator and +1 for newline (added by openssl)
-	 char *buffer = (char*) calloc(1, ldeclen + 2);
+	 char *buffer = (char*) calloc(1, len_dec + 2);
 
 	 unsigned int readlen = 0;
 
-	 FILE *stream = fmemopen((void *)strnl, len, "r");
+	 FILE *stream = fmemopen((void *)strnl, len_in, "r");
 	 bio = BIO_new_fp(stream, BIO_NOCLOSE);
 	  
 	 b64 = BIO_new(BIO_f_base64());
@@ -197,24 +209,25 @@ char *b64_decode(const char *str, unsigned int *declen,
 
 	 bio = BIO_push(b64, bio);
 
-	 readlen = BIO_read(bio, buffer, len);
+	 readlen = BIO_read(bio, buffer, len_in);
 
-	 if (readlen != ldeclen) {
-		 printfe("Read length does not match expected length\n");
+	 if (readlen != len_dec) {
+		 printfw("Read length (%d) does not match expected length (%d)\n", readlen, 
+				 len_dec);
 	 }
 
 	 // remove trailing newline 
-	 buffer[ldeclen] = '\0';
+	 buffer[len_dec] = '\0';
 
 	 // force zero termination 
-	 buffer[ldeclen + 1] = '\0';
+	 buffer[len_dec + 1] = '\0';
 	  
 	 BIO_free_all(bio);
 	 fclose(stream);
 
-	 printfd("decoded string: %s (length: %d)\n", buffer, ldeclen);
+	 printfd("decoded string: %s (length: %d)\n", buffer, len_dec);
 
-	 *declen = ldeclen;
+	 *len_out = len_dec;
 	   
 	 return buffer;
 }
