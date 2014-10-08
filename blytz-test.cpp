@@ -43,7 +43,7 @@ TEST(Base64Test, EncodeEqDecode) {
 
 	unsigned int tmp = strlen(str3);
 	enc = b64_encode(str3, tmp, false);
-  dec = b64_decode(enc, &tmp, false);
+  dec = b64_decode(enc, &tmp);
 
 	EXPECT_STREQ(str3,dec);
 }

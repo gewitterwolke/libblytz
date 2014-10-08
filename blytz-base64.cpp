@@ -151,28 +151,39 @@ unsigned int b64_get_decoded_len(const char* b64input) {
 	return b64_get_decoded_len(b64input, true);
 }
 
-char *b64_decode_nnl(const char *str, unsigned int *len, bool use_newlines) {
-	return b64_decode(str, len, use_newlines, false);
+char *b64_decode_nnl(const char *str, unsigned int *len) {
+	return b64_decode(str, len, false);
 }
 
 char *b64_decode(const char *str) {
 	unsigned int unused;
-	return b64_decode(str, &unused, true, true);
+	return b64_decode(str, &unused, true);
 }
 
 char *b64_decode(const char *str, unsigned int *len) {
-	return b64_decode(str, len, true, true);
+	return b64_decode(str, len, true);
 }
 
+/*
 char *b64_decode(const char *str, unsigned int *len, bool use_newlines) {
 	return b64_decode(str, len, use_newlines, true);
 }
+*/
 
-// decodes a base64 encoded string
-char *b64_decode(const char *str, unsigned int *len_out,
-		bool use_newlines, bool trailing_newline) {
+// decodes a base64 encoded string (str) returning the decoded length (len_out)
+char *b64_decode(const char *str, unsigned int *len_out, bool trailing_newline) {
 
 	 BIO *bio, *b64;
+
+	 // check if the input contains newlines
+	 unsigned int len_in = strlen(str);
+	 bool use_newlines = false;
+	 for (int i = 0; i < len_in; i++) {
+		 if (str[i] == '\n') {
+			 use_newlines = true;
+			 break;
+		 }
+	 }
 
 	 printfd( "decoding \"%s\" (%lu chars), using newlines: %s\n", str, 
 			 strlen(str), use_newlines ? "true" : "false");
@@ -185,7 +196,6 @@ char *b64_decode(const char *str, unsigned int *len_out,
 		 len_dec++;
 	 printfd( "calc. length of decoded string: %d\n", len_dec);
 
-	 unsigned int len_in = strlen(str);
 
 	 // add a trailing newline (openssl compatibility)
 	 len_in++;

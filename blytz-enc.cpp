@@ -210,10 +210,12 @@ namespace blytz {
 			}
 		}
 
+		/*
 		bool has_newlines = false;
 		if (strstr(str, "\n")) {
 			has_newlines = true;
 		}
+		*/
 
 		// debug output
 		printfd("Incoming string for decryption (after replacing '!'): %s\n", str2);
@@ -221,7 +223,7 @@ namespace blytz {
 		unsigned int len; // = get_decoded_len(str2);
 		//printfd("Estimated length of decoded: %d\n", len);
 
-		char *dec = b64_decode_nnl(str2, &len, has_newlines);
+		char *dec = b64_decode_nnl(str2, &len);
 		unsigned char *salt = get_salt(dec, len);
 
 		printfd("Salt: %.8s\n", salt);
