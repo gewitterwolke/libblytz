@@ -67,20 +67,19 @@ char *b64_encode(const char *str, unsigned int len,
 
 	 BIO *bio, *b64;
 
-	 if (trailing_newline)
-		 printfd("Using trailing newline\n");
-
 	 if (strlen(str) > len) {
 		 printfw("String (\"%s\") is longer than given length (%lu > %d)\n", str,
 				 strlen(str), len);
 	 }
 
-	 printfd( "Encoding \"%s\" (%d chars), using newlines: %s\n", str, 
-			 len, use_newlines ? "true" : "false");
+	 printfd( "Encoding \"%s\" (%d chars), newlines: %s, trailing newline: %s\n", 
+			 str, len, use_newlines ? "true" : "false", 
+			 trailing_newline ? "true" : "false");
 
 	 // add a newline at the end (to be compatible with openssl)
 	 if (trailing_newline)
 		 len++;
+
 	 char *strnl = (char *) calloc(1, len + 1);
 	 strcpy(strnl, str);
 	 if (trailing_newline)
@@ -164,43 +163,26 @@ char *b64_decode(const char *str, unsigned int *len) {
 	return b64_decode(str, len, true);
 }
 
-/*
-char *b64_decode(const char *str, unsigned int *len, bool use_newlines) {
-	return b64_decode(str, len, use_newlines, true);
-}
-*/
-
 // decodes a base64 encoded string (str) returning the decoded length (len_out)
 char *b64_decode(const char *str, unsigned int *len_out, bool trailing_newline) {
 
 	 BIO *bio, *b64;
 
 	 // check if the input contains newlines
+	 // FIXME: define max length if string is not terminated?
 	 unsigned int len_in = strlen(str);
 	 bool use_newlines = false;
 	 if (strstr(str, "\n") != NULL)
 		 use_newlines = true;
 	 
-	 /*
-	 for (int i = 0; i < len_in; i++) {
-		 if (str[i] == '\n') {
-			 use_newlines = true;
-			 break;
-		 }
-	 }
-	 */
-
-	 printfd( "decoding \"%s\" (%lu chars), using newlines: %s\n", str, 
-			 strlen(str), use_newlines ? "true" : "false");
-
-	 if (trailing_newline)
-		 printfd("Using trailing newline\n");
+	 printfd( "Decoding \"%s\" (%lu chars), newlines: %s, trailing newline: %s\n", 
+			 str, strlen(str), use_newlines ? "true" : "false", 
+			 trailing_newline ? "true" : "false");
 
 	 unsigned int len_dec = b64_get_decoded_len(str, use_newlines);
 	 if (!trailing_newline)
 		 len_dec++;
-	 printfd( "calc. length of decoded string: %d\n", len_dec);
-
+	 printfd( "Calculated length of decoded string: %d\n", len_dec);
 
 	 // add a trailing newline (openssl compatibility)
 	 len_in++;
@@ -209,7 +191,8 @@ char *b64_decode(const char *str, unsigned int *len_out, bool trailing_newline) 
 	 strcat(strnl, "\n");
 
 	 // +1 for zero-terminator and +1 for newline (added by openssl)
-	 char *buffer = (char*) calloc(1, len_dec + 2);
+	 len_dec += 1;
+	 char *buffer = (char*) calloc(1, len_dec + 1);
 
 	 unsigned int readlen = 0;
 
@@ -232,7 +215,8 @@ char *b64_decode(const char *str, unsigned int *len_out, bool trailing_newline) 
 	 }
 
 	 // remove trailing newline 
-	 buffer[len_dec] = '\0';
+	 buffer[len_dec - 1] = '\0';
+	 len_dec -= 1;
 
 	 // force zero termination 
 	 buffer[len_dec + 1] = '\0';

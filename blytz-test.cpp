@@ -48,6 +48,18 @@ TEST(Base64Test, EncodeEqDecode) {
 	EXPECT_STREQ(str3,dec);
 }
 
+TEST(Base64Test, EncodeEqDecode2) {
+	const char *str = "\n\n\n";
+
+	char *enc = b64_encode(str);
+	char *dec = b64_decode(enc);
+
+	EXPECT_STREQ(str, dec);
+
+	free(enc);
+	free(dec);
+}
+
 TEST(Base64Test, EncodeSample1) {
 	EXPECT_STREQ(b64_encode("fsk", 3), "ZnNrCg==");
 	EXPECT_STREQ(b64_encode("asdf", 4), "YXNkZgo=");

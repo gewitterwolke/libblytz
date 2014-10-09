@@ -52,8 +52,6 @@ namespace blytz {
 		rest_response res;
 
 
-		//FILE *f = fopen("/tmp/debugapi.txt", "a");
-
 		/*
 		// FIXME: only SSH
 		std::string connect_url = blytz_settings.server_url + "/connectSSH";
@@ -99,17 +97,13 @@ namespace blytz {
 	}
 
 	void set_server_url(std::string url) {
-		//FILE *f = fopen("/tmp/debugapi.txt", "a");
 		blytz_settings.server_url = url;		
 		printfd( "BLYTZ-API - set server url %s\n", url.c_str());
-		//fclose(f);
 	}
 
 	void set_server_url(const char *url) {
-		//FILE *f = fopen("/tmp/debugapi.txt", "a");
 		blytz_settings.server_url = url;
 		printfd("BLYTZ-API - set server url %s\n", url);
-		//fclose(f);
 	}
 
 	void set_application_name(const char* name) {
@@ -121,17 +115,13 @@ namespace blytz {
 	}
 
 	void set_identifier(const char *id) {
-		//FILE *f = fopen("/tmp/debugapi.txt", "a");
 		printfd( "BLYTZ-API - set identifier %s\n", id);
 		blytz_settings.identifier = id;
-		//fclose(f);
 	}
 
 	void set_identifier(std::string id) {
-		//FILE *f = fopen("/tmp/debugapi.txt", "a");
 		printfd( "BLYTZ-API - set identifier %s\n", id.c_str());
 		blytz_settings.identifier = id;
-		//fclose(f);
 	}
 
 	std::string create_password() {
@@ -184,8 +174,6 @@ namespace blytz {
 		ret.error = OK;
 		std::string conn_str = blytz_settings.server_url + "/credentials/get";
 
-		//FILE *f = fopen("/tmp/debugapi.txt", "a");
-
 		rest_response res;
 		res = rest_get(conn_str);
 		printfd( "get, code: %d\n", res.code);
@@ -209,7 +197,7 @@ namespace blytz {
 
 				if (!has_encryption_pwd()) {
 
-					printfd( "Encryption enabled on server side but no password specified\n");
+					printfw( "Encryption enabled on server side but no password specified\n");
 					ret.error = NO_PASSWORD;
 					strncpy(ret.message, 
 							"Encryption enabled on server side but no password specified", MAX_MSG_SIZE);
@@ -231,13 +219,10 @@ namespace blytz {
 			ret.error = GENERIC_ERROR;
 		}
 
-		//fclose(f);
 		return ret;
 	}
 
   retval get_password() {
-
-		FILE *f = fopen("/tmp/debugapi.txt", "a");
 
 		retval ret;
 		ret.error = OK;
@@ -256,11 +241,9 @@ namespace blytz {
 				strncpy(ret.message, dec, MAX_MSG_SIZE);
 			}
 	
-			fclose(f);
 			return ret;
 		}
 
-		fclose(f);
 		ret.error = NO_PASSWORD;
 		return ret;
 	}
@@ -275,7 +258,6 @@ namespace blytz {
 			rest_response res = rest_get(conn_str);
 
 			strncpy(ret.message, res.body.c_str(), MAX_MSG_SIZE);
-			FILE *f = fopen("/tmp/debugapi.txt", "a");
 			printfd("get_password: %s\n", ret.message);
 
 			if (is_encrypted()) {
@@ -285,7 +267,6 @@ namespace blytz {
 				strncpy(ret.message, dec, MAX_MSG_SIZE);
 			}
 	
-			fclose(f);
 			return ret;
 		}
 
