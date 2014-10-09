@@ -136,14 +136,16 @@ unsigned int b64_get_decoded_len(const char* b64input, bool use_newlines) {
 	if (b64input[len - 2] == '=')
 		padding++;
 	 
-	int declen = floor((len - padding) * 0.75);
-
 	// the newlines in the base64-encoded string are mandatory
 	// and unrelated to the newlines in the decoded string
 	// so don't count them.
+	int declen = floor((len - padding - nnls) * 0.75);
+
+	printfd("declen: %d = (%d - %d - %d) * 0.75\n", declen, len, padding, nnls);
+
 	// -1 because we assume the encoded string was obtained by adding
 	// a newline at the end of the original string for openssl compatibility
-	return declen - nnls - 1;
+	return declen - 1;
 }
 
 unsigned int b64_get_decoded_len(const char* b64input) { 
