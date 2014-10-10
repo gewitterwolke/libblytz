@@ -26,7 +26,7 @@ unsigned int b64_get_encoded_len(unsigned int len, bool use_newlines) {
 	unsigned int nnls = len / ( (B64_MAX_LINE_LEN) * 0.75 + 1);
 
 	if (use_newlines) {
-		printfd("newlines in encoded string: %d\n", nnls);
+		printfd("Newlines in encoded string: %d\n", nnls);
 	}
 
 	unsigned int enclen = 4 * ceil(len / 3.0);
@@ -35,7 +35,7 @@ unsigned int b64_get_encoded_len(unsigned int len, bool use_newlines) {
 		enclen += nnls;
 	}
 
-	printfd("length of encoded string %s: %d\n", 
+	printfd("Length of encoded string %s: %d\n", 
 			use_newlines ? "(incl. newlines)" : "", enclen);
 
 	return enclen;
@@ -113,7 +113,7 @@ char *b64_encode(const char *str, unsigned int len,
 	 // force zero termination
 	 buffer[enclen + 1] = '\0';
 
-	 printfd( "encoded string: \"%s\" (%lu chars)\n", buffer, strlen(buffer));
+	 printfd( "Encoded string: \"%s\" (%lu chars)\n", buffer, strlen(buffer));
 
 	 return buffer;
 }

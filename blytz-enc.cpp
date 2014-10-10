@@ -110,27 +110,6 @@ namespace blytz {
 		unsigned char *salt = (unsigned char *) malloc(SALT_LEN);
 		RAND_bytes(salt, SALT_LEN);
 
-		/*
-		salt[0] = 1;
-		salt[1] = 1;
-		salt[2] = 1;
-		salt[3] = 1;
-		salt[4] = 1;
-		salt[5] = 1;
-		salt[6] = 1;
-		salt[7] = 1;
-		*/
-
-		/*
-		int test[1000];
-		for (int i = 0; i < SALT_LEN; i++) {
-			test[i] = salt[i];
-			printf("%02x ", test[i]);
-		}
-
-		printf("\n");
-		*/
-
 		unsigned int pwdlen = strlen(pwd);
 
 		EVP_CIPHER_CTX en, de;
@@ -152,20 +131,11 @@ namespace blytz {
 
 		unsigned char *dat = aes_encrypt(&en, (unsigned char *)strnl, &len);
 
-		// printf("Enc dat:\n");
-		// for (int i = 0; i < len; i++) {
-		// 	printf("%02x ", dat[i]);
-		// }
-		// printf("\n");
-
 		unsigned char *keystr = get_keystr((const unsigned char*)dat, 
 				(unsigned int)len, salt);
 
-		// printf("Keystr: %s\n", keystr);
-
 		char *enc = b64_encode_nnl((char *)keystr, 
 				SALTSTR_LEN + SALT_LEN + len);
-		//char *enc = b64_encode((char *)keystr, SALTSTR_LEN + SALT_LEN + len);
 
 		// replace newlines
 		if (replace_newlines) {
@@ -175,6 +145,8 @@ namespace blytz {
 				}
 			}
 		}
+
+		printfd("Finished encrypting\n");
 
 		free(keystr);
 		free(salt);

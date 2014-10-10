@@ -300,6 +300,8 @@ namespace blytz {
 			formatstr = "\"format\":\"plain\"";
 		}
 
+		printfd("Encryption successful\n");
+
 		// set POST data
 		std::stringstream sts;
 		sts << "{\n\"username\":\"" << user << "\",\n\"password\":\"" <<
@@ -310,6 +312,8 @@ namespace blytz {
 
 		// send to blytz server (-> app)
 		std::string conn_str = blytz_settings.server_url + "/credentials/set";
+
+		printfd("Setting credentials");
 
 		rest_response res;
 		res = rest_post(conn_str, postdata);
