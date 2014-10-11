@@ -71,14 +71,14 @@ namespace blytz {
 		std::string path = "/" + blytz_settings.name + "/" + blytz_settings.identifier;
 		std::string connect_url = blytz_settings.server_url + "/connect" + path;
 
-		printfd( "BLYTZ-API - Connect url %s\n", connect_url.c_str());
+		printfd( "Connect url %s\n", connect_url.c_str());
 		
 		res.code = HTTP_OK;
 		res = rest_get( connect_url);
 
 		if (res.code == HTTP_OK) {
 
-			printfd( "BLYTZ_API - Connect returned HTTP_OK\n");
+			printfd( "Connect returned HTTP_OK\n");
 
 			initialized = true;
 
@@ -98,12 +98,12 @@ namespace blytz {
 
 	void set_server_url(std::string url) {
 		blytz_settings.server_url = url;		
-		printfd( "BLYTZ-API - set server url %s\n", url.c_str());
+		printfd( "Set server url %s\n", url.c_str());
 	}
 
 	void set_server_url(const char *url) {
 		blytz_settings.server_url = url;
-		printfd("BLYTZ-API - set server url %s\n", url);
+		printfd("Set server url %s\n", url);
 	}
 
 	void set_application_name(const char* name) {
@@ -115,12 +115,12 @@ namespace blytz {
 	}
 
 	void set_identifier(const char *id) {
-		printfd( "BLYTZ-API - set identifier %s\n", id);
+		printfd( "Set identifier %s\n", id);
 		blytz_settings.identifier = id;
 	}
 
 	void set_identifier(std::string id) {
-		printfd( "BLYTZ-API - set identifier %s\n", id.c_str());
+		printfd( "Set identifier %s\n", id.c_str());
 		blytz_settings.identifier = id;
 	}
 

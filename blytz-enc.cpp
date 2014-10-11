@@ -62,7 +62,7 @@ namespace blytz {
 
 		// max ciphertext len for n bytes of plaintext is n + AES_BLOCK_SIZE -1 bytes
 		int c_len = *len + AES_BLOCK_SIZE, f_len = 0;
-		unsigned char *ciphertext = (unsigned char *)malloc(c_len);
+		unsigned char *ciphertext = (unsigned char *)calloc(1, c_len);
 
 		// allows reusing of 'e' for multiple encryption cycles
 		EVP_EncryptInit_ex(e, NULL, NULL, NULL, NULL);
@@ -72,8 +72,10 @@ namespace blytz {
 		EVP_EncryptUpdate(e, ciphertext, &c_len, plaintext, *len);
 
 		// update ciphertext with the final remaining bytes
-		EVP_EncryptFinal_ex(e, ciphertext+c_len, &f_len);
+		EVP_EncryptFinal_ex(e, ciphertext + c_len, &f_len);
 
+
+		printfd("Default blocks length: %d, final block length %d\n", c_len, f_len);
 		*len = c_len + f_len;
 		return ciphertext;
 	}
@@ -86,15 +88,24 @@ namespace blytz {
 
 		// because we have padding ON, we must allocate an extra cipher block size 
 		// of memory
-		int p_len = *len, f_len = 0;
-		unsigned char *plaintext = (unsigned char *)malloc(p_len + AES_BLOCK_SIZE);
+		
+		// padding will only be removed automatically if it is in the final block, 
+		// therefore (in this case), the length must not be a multiple of 
+		// AES_BLOCK_SIZE or the data will be decrypted in the main step and not 
+		// in the decrypt_final step. hence we subtract AES_BLOCK_SIZE from the 
+		// total length
+		printfd("Total length to decrypt: %d\n", *len);
+
+		int p_len = *len - AES_BLOCK_SIZE, f_len = 0;
+		unsigned char *plaintext = (unsigned char *) calloc(1, p_len + AES_BLOCK_SIZE + 1);
 
 		EVP_DecryptInit_ex(e, NULL, NULL, NULL, NULL);
-		EVP_DecryptUpdate(e, plaintext, &p_len, ciphertext, *len);
-		EVP_DecryptFinal_ex(e, plaintext+p_len, &f_len);
+		EVP_DecryptUpdate(e, plaintext, &p_len, ciphertext, p_len);
+		EVP_DecryptFinal_ex(e, plaintext + p_len, &f_len);
 
 		*len = p_len + f_len;
-		memset(plaintext + p_len + f_len, 0, AES_BLOCK_SIZE - f_len);
+		printfd("default blocks length %d, final block length %d\n", p_len, f_len);
+
 		return plaintext;
 	}
 
@@ -108,7 +119,15 @@ namespace blytz {
 	const char *encrypt(const char *str, const char *pwd, bool replace_newlines) {
 
 		unsigned char *salt = (unsigned char *) malloc(SALT_LEN);
-		RAND_bytes(salt, SALT_LEN);
+		//RAND_bytes(salt, SALT_LEN);
+		salt[0] = 1;
+		salt[1] = 1;
+		salt[2] = 1;
+		salt[3] = 1;
+		salt[4] = 1;
+		salt[5] = 1;
+		salt[6] = 1;
+		salt[7] = 1;
 
 		unsigned int pwdlen = strlen(pwd);
 
@@ -120,22 +139,23 @@ namespace blytz {
 		}
 
 		int len = strlen(str);
-		printfd("Length to encrypt: %d\n", len);
 
 		char *strnl = (char *) calloc(1, len + 1);
 		strcpy(strnl, str);
 		strcat(strnl, "\n");
 		len++;
 
+		printfd("Length to encrypt: %d (including trailing newline)\n", len);
 		printfd("Encrypting %s with salt %.8s and pwd %s\n", strnl, salt, pwd);
 
 		unsigned char *dat = aes_encrypt(&en, (unsigned char *)strnl, &len);
 
+		printfd("Actual length of encrypted data: %d (including padding)\n", len);
+		printfd("Creating OpenSSL compatible string\n");
 		unsigned char *keystr = get_keystr((const unsigned char*)dat, 
 				(unsigned int)len, salt);
 
-		char *enc = b64_encode_nnl((char *)keystr, 
-				SALTSTR_LEN + SALT_LEN + len);
+		char *enc = b64_encode_nnl((char *)keystr, SALTSTR_LEN + SALT_LEN + len);
 
 		// replace newlines
 		if (replace_newlines) {
@@ -151,6 +171,7 @@ namespace blytz {
 		free(keystr);
 		free(salt);
 		free(dat);
+		free(strnl);
 
 		return enc;
 	}
@@ -182,7 +203,7 @@ namespace blytz {
 			}
 		}
 
-		printfd("Incoming string for decryption (after replacing '!'): %s\n", str2);
+		//printfd("Incoming string for decryption (after replacing '!'): %s\n", str2);
 
 		unsigned int len;
 
@@ -202,12 +223,16 @@ namespace blytz {
 
 		unsigned char *dat = get_dat(dec, len);
 		
-		len -= (SALTSTR_LEN + SALT_LEN);
+		//len -= (SALTSTR_LEN + SALT_LEN);
+		//len+=1;
 
 		// actual AES decryption
 		unsigned char *plain = aes_decrypt(&de, (unsigned char *)dat, (int *)&len);
 
 		printfd("Decrypted String: %s (length: %d)\n", plain, len);
+
+		if (len == 0)
+			return INVALID;
 
 		free(salt);
 		free(dec);
@@ -251,7 +276,8 @@ namespace blytz {
 			const unsigned char *salt) {
 
 		unsigned int totlen = len + SALTSTR_LEN + SALT_LEN;
-		printfd("Length of enc data: %d\n", len);
+		//printfd("Length of encryption payload data: %d, total length: %d\n", len,
+		//		totlen);
 
 		unsigned char *keystr = (unsigned char *)calloc(1, totlen);
 
@@ -260,10 +286,6 @@ namespace blytz {
 		memcpy( keystr + SALTSTR_LEN, salt, SALT_LEN);
 		memcpy( keystr + SALTSTR_LEN + SALT_LEN, dat, len);
 
-		// for (int i = 0; i < totlen; i++) {
-		// 	printf("%02x ", keystr[i]);
-		// }
-		// printf("\n");
 		return keystr;
 	}
 

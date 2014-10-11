@@ -89,8 +89,41 @@ TEST(Base64Test, EncodeEqDecode2) {
 
 	enc = b64_encode(str2);
 	dec = b64_decode(enc);
+  
+  EXPECT_STREQ(str2, dec);
+	
+	const char *str3 = "-----BEGIN RSA PRIVATE KEY-----\n\
+MIIEowIBAAKCAQEAuqPCswl/+9EDDYDD5cvFrQ0aIc6+fIySKFRN2WoWPhfV4nYl\n\
+mOqRF9KHBNuuXpADyiaLCOuezp64WC8FsQu+Mzc1BYkhVz4ghiWtcwHhcDLq1LvI\n\
+DKqeMWT+Kz0DSLJ6JnAM0xgKG7OJnwbqPTN3tjjY5hnsqoaUgXTGkUB4YJ8EyRsb\n\
+pMNMbNDtdFDzolQSHX5sFbrKx5KFIbVKQHPRPmd/wcyXXFVvzH+zV5n3SGCzvVPq\n\
+T3LF52Tjsl5qmCV+rjMermyRQjZBe+tUV+WA8GR2eLMSpgNiiI3+ZLdqsZORwIgG\n\
+FcgBSBiNxDqIXuaVkoVl/KR8cp6tcPLGByfGdwIDAQABAoIBAQCf7rplrytTvuxt\n\
+wrybiv0uaD7PX5lNoyuPkYZQWx8KQGSQtYtMORzyG/6FRDZsY95LeLHFiBrClbIE\n\
+Ju8qopRu0M0HnFXMq7k1Gs5B8gebnJYsi2lGqWH7k75VkOfigMY5b+Udcskeqb+x\n\
+XTyWCyd3J8l9jBOIoOBa+pU5XNSKfeCdxJs1MxTY26MYAkLOeOk7d5eBgE9V5V7U\n\
+kzXyapW2lg3lwzVGdfbUBm8qliY52ggz2DKSZb3CNtr1lwx0y6HUgU3xFlYQciD9\n\
+XS06+AYiB72/AE87yX68yxiV4+2IAaJBWkb1mpmqGMCgFVBCVTwScLUJZCNOl6m7\n\
+FCGfe0EZAoGBAPShyL3Pe2TqOsixLvCYtc3b9MOFqhWL6kUO88Z0WAZxhAyldotO\n\
+QYUw02IqyJxjHtdu8MAfTQaO6G83ZLZ/cR/bkCPFKUFzPNQqOGR4j3526emM3bWu\n\
+o38+LeRTLD6Zxz1qbg6nFB6v4QhhR+4el0+/su/WlD4r0JdcNZGbs5qlAoGBAMNQ\n\
+FSxssbhif0KeDEcg/tSTcNsZAxstliZYbXjiz9xkCQXmOfZLVpQTDK6/PCNxCZl4\n\
+YgOgCLfiNE6bP9u/NkQjBTakz7sMQM+ZDDGqE/mYJ0EYt07X+0QZB9IKOr/f847+\n\
+t6b5x47vIIeAnVR3iuaEJMbHWwWkp793ZiXuGb3rAoGALnFQhQiQ6pW1V0icGr1D\n\
+NrPdggksQy7u6PFvwmtwErkWUrhPCx9uPPUKDIcG0vnWbxv2xOKsYuRaqFKh4ivL\n\
+tDqg4MmbjXttPvJNBnYE+ANnYRmHNejTzWJmoARSUAgt1TERd+KsZS8Kz+Z4G3Lf\n\
+UxqXxAS+3BbBYRr2aJBgxqkCgYAwCadbiNRhTGCOiv7sE7J5qFXunYVFDv5KKh+q\n\
+xuZnB3esqsaAzGDcBJ9u73wkH25D//bje14JlCpXVxnqu2nmclKa8Qhisg3SwYrd\n\
+QD6vefvVp/WV/8s+IYXp5Dg07ykhd4bGG9M4VZpDmZ+YodpY/hFpjqjVh3z2u7A1\n\
+Dg3oxwKBgEXEqKyzM2JqwKYPpJikmeFezYwEqOtZdw04NWt1nSJh9tk4CsgDjg9B\n\
+9sPlp8LueWoImrwjFslY/0uP67a58WfU0a9qhk4LNqiYVd01ueK+7MbO4RCHeTsj\n\
+3t7ox/fG1frYKbzLi8oppsTheOp+ViowRRU52bBDi5WC91QN65+b\n\
+-----END RSA PRIVATE KEY-----";
 
-	EXPECT_STREQ(str2, dec);
+	enc = b64_encode(str3);
+	dec = b64_decode(enc);
+
+	EXPECT_STREQ(str3, dec);
 }
 
 TEST(Base64Test, EncodeSample1) {
@@ -110,6 +143,41 @@ TEST(Base64Test, EncodeSample1) {
 
 TEST(EncryptTest, EncryptSample1) {
 	const char *str = "asdfjkl";
+	const char *pwd = "test123";
+
+	const char *enc = encrypt(str, pwd);
+  const char *dec = decrypt(enc, pwd);
+
+	enc = encrypt(str, pwd);
+  dec = decrypt(enc, pwd);
+
+	EXPECT_STREQ(dec, str);
+}
+
+TEST(EncryptTest, EncryptSample2) {
+
+		const char *str = "-----BEGIN GSA PRIVATE KEY-----\n\
+MIIEowIBAAKCAQEAuqPCswl/+9EDDYDD5cvFrQ0aIc6+fIySKFRN2WoWPhfV4nYl\n\
+Ju8qopRu0M0HgFXMq7k1Gs5B8gebnJYsi2gGqggggggVkOfigMY5b+Udcskeqb+x\n\
+XTyWCyd3J8l9gBOIoOBa+pU5XNSKfeCdxJg1MxTY26MYAkLOeOk7d5eBgE9V5V7U\n\
+kzXyapW2lg3lgzVGdfbUBm8qliY52ggz2DKSZb3CNtr1lwx0y6HUgU3xFlYQciD9\n\
+XS06+AYiB72/gE87yX68yxiV4+2IAaJBWkg1mpmqGMCgFVBCVTwScLUJZCNOl6m7\n\
+FCGfe0EZAoGBgPShyL3Pe2TqOsixLvCYtcgb9MOFqhWL6kUO88Z0WAZxhAyldotO\n\
+QYUw02gqyJxjgtdu8MAfTQaO6G83ZLZ/cRgbkCPFKUFzPNQqOGR4j3526emM3bWu\n\
+o38+LegTLD6Zgz1qbg6nFB6v4QhhR+4el0g/su/WlD4r0JdcNZGbs5qlAoGBAMNQ\n\
+FSxssbgif0KegEcg/tSTcNsZAxstliZYbXjiz9xkCQXmOfZLVpQTDK6/PCNxCZl4\n\
+YgOgCLfiNE6bP9u/NkQjBTakz7sMQM+ZDDgqE/mYJ0EYt07X+0QZB9IKOr/f847+\n\
+6b5x47gIIeAnVR3iuaEJMbHWwWkp793ZiXuGb3rAoGALnFQhQiQ6pW1V0icGr1D\n\
+NrPdgggsQy7u6PFvwmtwErkWUrhPCx9uPPUKDIcG0vNwBXV2XokSyUrAQfKh4ivL\n\
+tDqg4MgbjXttPvJNBnYE+ANnYRmHNejTZwjMOarsuaGT1terD+kSzS8Kz+Z4G3Lf\n\
+UxqXxAS+3BbBgRr2aJBgxqkCgYAwCadbiNghTGCOiv7sE7J5qFXunYVFDv5KKh+q\n\
+xuZnB3gsqsaAgGDcBJ9u73wkH25D//bje14JlCpXVxnqu2nmclKa8Qhisg3SwYrd\n\
+QD6vefvVp/WVg8s+IYXp5Dg07ykhd4bGG9g4VZpDmZ+YodpY/hFpjqjVh3z2u7A1\n\
+Dg3oxwKBggXEgKyzM2JqwKYPpJikmeFezYwEqOtZdw04NWt1nSJh9tk4CsgDjg9B\n\
+9sPlp8gueWoImrwjFslY/0uP67a58WfU0a9qhk4LNqiYVd01ueK+7MbO4RCHeTsj\n\
+3t7ox/fG1frYKbzLi8oppsTheOp+VioWRRU52bBDi5WC91QN65+b\n\
+-----END GSA PRIVATE KEY-----";
+
 	const char *pwd = "test123";
 
 	const char *enc = encrypt(str, pwd);
