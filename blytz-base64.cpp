@@ -144,9 +144,6 @@ unsigned int b64_get_decoded_len(const char* b64input, bool use_newlines) {
 
 	printfd("declen: %d = (%d - %d - %d) * 0.75\n", declen, len, padding, nnls);
 
-	// FIXME:
-	// -1 because we assume the encoded string was obtained by adding
-	// a newline at the end of the original string for openssl compatibility
 	return declen;
 }
 
@@ -178,6 +175,10 @@ char *b64_decode(const char *str, unsigned int *len_out, bool trailing_newline) 
 	 bool use_newlines = false;
 	 if (strstr(str, "\n") != NULL)
 		 use_newlines = true;
+
+	 // do not expect a trailing newline if not using newlines at all
+	 // if (!use_newlines)
+	 //  trailing_newline = false;
 	 
 	 printfd( "Decoding \"%s\" (%lu chars), newlines: %s, trailing newline: %s\n", 
 			 str, strlen(str), use_newlines ? "true" : "false", 

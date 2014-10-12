@@ -41,4 +41,4 @@ blytz-test.o: blytz-test.cpp libblytz.so install
 	$(COMPILER) $(DEBUG) $(CCPATHS) blytz-test.cpp  -L. -lblytz -lgtest $(LDFLAGS) -pthread -o blytz-test && ./blytz-test
 
 clean:
-	rm -rf *~ .*~ *.o *.so *.core
+	rm -rf *~ .*~ *.o *.so *.core blytz-test

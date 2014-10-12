@@ -93,11 +93,15 @@ namespace blytz {
 			header = curl_slist_append(header, content_type);
 			curl_easy_setopt(curl, CURLOPT_HTTPHEADER, header);
 
+			printfd("Performing POST\n");
+
 			// perform post
 			res = curl_easy_perform(curl);
 
 			long http_code = 0;
 			curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+
+			printfd("POST finished, code: %ld\n", http_code);
 
 			ret.code = (int) http_code;
 
@@ -145,7 +149,7 @@ namespace blytz {
 
 			printfd("GET code %d\n", ret.code);
 			printfd("GET addr %p\n", &ret.body);
-			printfd( "GET len %lud\n", ret.body.length());
+			printfd( "GET len %lu\n", ret.body.length());
 
 			curl_easy_cleanup(curl);
 			curl_global_cleanup();
@@ -170,7 +174,7 @@ namespace blytz {
 	const char *get_sessionid() {
 		std::string sessionid;
 
-		printfd("BLYTZ-API - in get_sessionid()\n");
+		printfd("in get_sessionid()\n");
 
 		// FIXME 
 		const char pre_sid_garbage[] = "s\%3A";
@@ -178,15 +182,15 @@ namespace blytz {
 		std::ifstream cookie_file;
 		cookie_file.open(cookie_filename.c_str());
 
-		printfd("BLYTZ-API - in get_sessionid2()\n");
+		printfd("in get_sessionid2()\n");
 
 		if (!cookie_file.is_open()) {
 			return rest_error_to_str(NO_SESSIONID).c_str();
-			printfd("BLYTZ-API - failed to open cookie file %s\n",
+			printfd("failed to open cookie file %s\n",
 					cookie_filename.c_str()); 
 		}
 
-		printfd("BLYTZ-API - opened cookie file %s\n", cookie_filename.c_str());
+		printfd("opened cookie file %s\n", cookie_filename.c_str());
 
 		std::string line;
 
@@ -205,7 +209,7 @@ namespace blytz {
 					size_t sid_len = pos_end_sid - pos_sid;
 					sessionid = line.substr(pos_sid, sid_len);
 					// FIXME: Sessionid not in public log file
-					printfd( "BLYTZ-API - found session id %s\n", sessionid.c_str());
+					printfd( "found session id %s\n", sessionid.c_str());
 
 					cookie_file.close();
 					break;
@@ -214,17 +218,17 @@ namespace blytz {
 		}
 
 		cookie_file.close();
-		printfd("BLYTZ-API - closed cookie file %s\n", cookie_filename.c_str());
+		printfd("closed cookie file %s\n", cookie_filename.c_str());
 
 		// copy, user has to delete it
-		printfd("BLYTZ-API - length of sessionid string %lu\n", sessionid.size());
+		printfd("length of sessionid string %lu\n", sessionid.size());
 		char *sessionid_ch = (char *) malloc(BLYTZ_SESSIONID_STR_LEN);
 		//memcpy(sessionid_ch, sessionid.c_str(), sessionid.size());
 		sessionid_ch = strncpy(sessionid_ch, sessionid.c_str(), 
 				BLYTZ_SESSIONID_STR_LEN);
 		//strcpy(sessionid_ch, sessionid.c_str());
 
-		printfd( "BLYTZ-API - returning session id %s\n", sessionid_ch);
+		printfd( "returning session id %s\n", sessionid_ch);
 		return sessionid_ch;
 	}
 }

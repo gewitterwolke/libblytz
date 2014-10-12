@@ -75,7 +75,7 @@ namespace blytz {
 		EVP_EncryptFinal_ex(e, ciphertext + c_len, &f_len);
 
 
-		printfd("Default blocks length: %d, final block length %d\n", c_len, f_len);
+		printfd("Default blocks length: %d, final block length: %d\n", c_len, f_len);
 		*len = c_len + f_len;
 		return ciphertext;
 	}
@@ -104,7 +104,7 @@ namespace blytz {
 		EVP_DecryptFinal_ex(e, plaintext + p_len, &f_len);
 
 		*len = p_len + f_len;
-		printfd("default blocks length %d, final block length %d\n", p_len, f_len);
+		printfd("Default blocks length: %d, final block length: %d\n", p_len, f_len);
 
 		return plaintext;
 	}
@@ -119,15 +119,15 @@ namespace blytz {
 	const char *encrypt(const char *str, const char *pwd, bool replace_newlines) {
 
 		unsigned char *salt = (unsigned char *) malloc(SALT_LEN);
-		//RAND_bytes(salt, SALT_LEN);
-		salt[0] = 1;
-		salt[1] = 1;
-		salt[2] = 1;
-		salt[3] = 1;
-		salt[4] = 1;
-		salt[5] = 1;
-		salt[6] = 1;
-		salt[7] = 1;
+		RAND_bytes(salt, SALT_LEN);
+		// salt[0] = 1;
+		// salt[1] = 1;
+		// salt[2] = 1;
+		// salt[3] = 1;
+		// salt[4] = 1;
+		// salt[5] = 1;
+		// salt[6] = 1;
+		// salt[7] = 1;
 
 		unsigned int pwdlen = strlen(pwd);
 
@@ -155,7 +155,8 @@ namespace blytz {
 		unsigned char *keystr = get_keystr((const unsigned char*)dat, 
 				(unsigned int)len, salt);
 
-		char *enc = b64_encode_nnl((char *)keystr, SALTSTR_LEN + SALT_LEN + len);
+		//char *enc = b64_encode_nnl((char *)keystr, SALTSTR_LEN + SALT_LEN + len);
+		char *enc = b64_encode((char *)keystr, SALTSTR_LEN + SALT_LEN + len, false, true);
 
 		// replace newlines
 		if (replace_newlines) {
@@ -180,14 +181,13 @@ namespace blytz {
 		return decrypt(str, pwd, true);
 	}
 
-	// decrypt a AES and Base64 encoded message str using password pwd
+	// decrypt an AES and Base64 encoded message str using password pwd
 	// (replaces '!' with '\n' before decryption assuming they have been added by
 	// encrypt() or BLYTZ App before)
 	// 
 	const char *decrypt(const char *str, const char *pwd, bool replace_newlines) {
 
-		char *str2 = (char *) calloc(1, strlen(str));
-		//strcpy(str2, str);
+		char *str2 = (char *) calloc(1, strlen(str) + 1);
 
 		// strip leading and trailing quotation marks and replace newlines
 		for (unsigned int i = 0, j = 0; i < strlen(str); i++) {
@@ -203,11 +203,12 @@ namespace blytz {
 			}
 		}
 
-		//printfd("Incoming string for decryption (after replacing '!'): %s\n", str2);
+		// printfd("Incoming string for decryption (after replacing '!'): %s\n", str2);
 
 		unsigned int len;
 
-		char *dec = b64_decode_nnl(str2, &len);
+		//char *dec = b64_decode_nnl(str2, &len);
+		char *dec = b64_decode(str2, &len, true);
 		unsigned char *salt = get_salt(dec, len);
 
 		unsigned int pwdlen = strlen(pwd);
@@ -302,5 +303,4 @@ namespace blytz {
 		free(salt);
 		return keystr_dec;
 	}
-
 }

@@ -232,7 +232,7 @@ namespace blytz {
 			rest_response res = rest_get(conn_str);
 
 			strncpy(ret.message, res.body.c_str(), MAX_MSG_SIZE);
-			printfd("get_password: %s\n", ret.message);
+			printfd("get_password: %s (%lu chars)\n", ret.message, strlen(ret.message));
 
 			if (is_encrypted()) {
 				printfd("decrypting\n");
@@ -293,7 +293,7 @@ namespace blytz {
 		// encrypt password data
 		const char *formatstr;
 		if (has_encryption_pwd()) {
-			const char *encpwd = encrypt(pwd.c_str(), blytz_settings.encpwd.c_str());
+			const char *encpwd = encrypt(pwd.c_str(), blytz_settings.encpwd.c_str(), false);
 			pwd = encpwd;
 			formatstr = "\"format\":\"encrypted\"";
 		} else {
@@ -313,7 +313,7 @@ namespace blytz {
 		// send to blytz server (-> app)
 		std::string conn_str = blytz_settings.server_url + "/credentials/set";
 
-		printfd("Setting credentials");
+		printfd("Setting credentials\n");
 
 		rest_response res;
 		res = rest_post(conn_str, postdata);
@@ -321,6 +321,8 @@ namespace blytz {
 		if (res.code != HTTP_OK) {
 			ret.error = GENERIC_ERROR;
 			strncpy(ret.message, "Error settings credentials", MAX_MSG_SIZE);
+		} else {
+			printf("Credentials set\n");
 		}
 
 		return ret;
@@ -362,6 +364,7 @@ namespace blytz {
 
   // returns yes if current credentials are encrypted
 	bool is_encrypted() {
+		printfd("is_encrypted()\n");
 		std::string conn_str = blytz_settings.server_url + "/credentials/encrypted";
 
 		rest_response res;
