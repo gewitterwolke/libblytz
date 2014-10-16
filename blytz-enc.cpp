@@ -118,16 +118,37 @@ namespace blytz {
 	// (replaces newlines with '!' after Base64 encryption
 	const char *encrypt(const char *str, const char *pwd, bool replace_newlines) {
 
-		unsigned char *salt = (unsigned char *) malloc(SALT_LEN);
+		unsigned char *salt = (unsigned char *) calloc(1, SALT_LEN);
+
 		RAND_bytes(salt, SALT_LEN);
-		// salt[0] = 1;
-		// salt[1] = 1;
-		// salt[2] = 1;
-		// salt[3] = 1;
-		// salt[4] = 1;
-		// salt[5] = 1;
-		// salt[6] = 1;
-		// salt[7] = 1;
+
+		/*
+		salt[0] = 1;
+		salt[1] = 1;
+		salt[2] = 1;
+		salt[3] = 1;
+		salt[4] = 1;
+		salt[5] = 1;
+		salt[6] = 1;
+		salt[7] = 1;
+		*/
+		/*
+		salt[0] = 0x58;
+		salt[1] = 0x5a;
+		salt[2] = 0x92;
+		salt[3] = 0x28;
+		salt[4] = 0xa1;
+		salt[5] = 0x0f;
+		salt[6] = 0x3e;
+		salt[7] = 0x54;
+		*/
+		/*
+		printf("salt:");
+		for (int i = 0; i < SALT_LEN; i++) {
+			printf("%x ", salt[i]);
+		}
+		printf("\n");
+		*/
 
 		unsigned int pwdlen = strlen(pwd);
 
@@ -224,9 +245,6 @@ namespace blytz {
 
 		unsigned char *dat = get_dat(dec, len);
 		
-		//len -= (SALTSTR_LEN + SALT_LEN);
-		//len+=1;
-
 		// actual AES decryption
 		unsigned char *plain = aes_decrypt(&de, (unsigned char *)dat, (int *)&len);
 
@@ -267,7 +285,7 @@ namespace blytz {
 
 		unsigned int dat_len = len - SALT_LEN - SALTSTR_LEN;
 
-		unsigned char *dat = (unsigned char *)malloc(dat_len);
+		unsigned char *dat = (unsigned char *) calloc(1, dat_len);
 		memcpy( dat, str + SALTSTR_LEN + SALT_LEN, dat_len);
 		return dat;
 	}

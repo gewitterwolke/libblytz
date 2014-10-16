@@ -84,7 +84,7 @@ char *b64_encode(const char *str, unsigned int len,
 	 char *strnl = (char *) calloc(1, len + 1);
 	 memcpy(strnl, str, len);
 	 if (trailing_newline)
-		 strcat(strnl, "\n");
+		 memset(strnl + len - 1, '\n', 1);
 
 	 unsigned int enclen = b64_get_encoded_len(len, use_newlines);
 
