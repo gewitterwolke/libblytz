@@ -19,15 +19,17 @@ namespace blytz {
 	\
 	FILE *df; \
 	df = fopen("/tmp/blytz-debug.log", "a"); \
-	fflush(df);\
-	\
-	fprintf( df, "[DEBUG] %02d-%02d %02d:%02d - %s:%3d | " FMT, \
-			lt->tm_mon + 1, lt->tm_mday, \
-			lt->tm_hour, lt->tm_min, \
-			__FILE__, __LINE__, \
-			##__VA_ARGS__);\
-	fflush(df);\
-	fclose(df);\
+	if (df != NULL) { \
+		fflush(df);\
+		\
+		fprintf( df, "[DEBUG] %02d-%02d %02d:%02d - %s:%3d | " FMT, \
+				lt->tm_mon + 1, lt->tm_mday, \
+				lt->tm_hour, lt->tm_min, \
+				__FILE__, __LINE__, \
+				##__VA_ARGS__);\
+		fflush(df);\
+		fclose(df);\
+	}\
 }
 #else
 #define printfd( FMT, ...)
@@ -39,15 +41,17 @@ namespace blytz {
 	\
 	FILE *df; \
 	df = fopen("/tmp/blytz-debug.log", "a"); \
-	fflush(df);\
-	\
-	fprintf( df, "[WARN]  %02d-%02d %02d:%02d - %s:%3d | " FMT, \
-			lt->tm_mon + 1, lt->tm_mday, \
-			lt->tm_hour, lt->tm_min, \
-			__FILE__, __LINE__, \
-			##__VA_ARGS__);\
-	fflush(df);\
-	fclose(df);\
+	if (df != NULL) { \
+		fflush(df);\
+		\
+		fprintf( df, "[WARN]  %02d-%02d %02d:%02d - %s:%3d | " FMT, \
+				lt->tm_mon + 1, lt->tm_mday, \
+				lt->tm_hour, lt->tm_min, \
+				__FILE__, __LINE__, \
+				##__VA_ARGS__);\
+		fflush(df);\
+		fclose(df);\
+	}\
 }
 #else
 #define printfw( FMT, ...)
@@ -59,6 +63,7 @@ namespace blytz {
 	\
 	FILE *df; \
 	df = fopen("/tmp/blytz-debug.log", "a"); \
+	if (df != NULL) { \
 	fflush(df);\
 	\
 	fprintf( df, "[ERROR] %02d-%02d %02d:%02d - %s:%3d | " FMT, \
@@ -68,6 +73,7 @@ namespace blytz {
 			##__VA_ARGS__);\
 	fflush(df);\
 	fclose(df);\
+	}\
 }
 #else
 #define printfe( FMT, ...)
@@ -116,7 +122,4 @@ namespace blytz {
 #define printfe( FMT, ...)
 #endif
 #endif
-
-//	int printfd(const char *fmt, ...);
-
 }

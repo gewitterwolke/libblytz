@@ -22,6 +22,7 @@ namespace blytz {
 	// HTTP response codes for blytz errors
 	typedef enum {
 		HTTP_OK = 200,
+		NO_CONTENT = 204,
 		NO_ENTRY = 206,
 		NOT_MODIFIED = 304,
 		NO_CONNECTION = 404

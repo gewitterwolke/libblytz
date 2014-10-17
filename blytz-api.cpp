@@ -293,8 +293,13 @@ namespace blytz {
 		// encrypt password data
 		const char *formatstr;
 		if (has_encryption_pwd()) {
+
 			const char *encpwd = encrypt(pwd.c_str(), blytz_settings.encpwd.c_str(), false);
 			pwd = encpwd;
+
+			const char *encuser = encrypt(user.c_str(), blytz_settings.encpwd.c_str(), false);
+			user = encuser;
+
 			formatstr = "\"format\":\"encrypted\"";
 		} else {
 			formatstr = "\"format\":\"plain\"";
@@ -305,15 +310,16 @@ namespace blytz {
 		// set POST data
 		std::stringstream sts;
 		sts << "{\n\"username\":\"" << user << "\",\n\"password\":\"" <<
-			pwd << "\", \n\"status\":\"widgetsetcredentials\",\n" << 
-			formatstr << "\n}";
-			//pwd << "\"\n}"; //,\n\"status\":\"widgetsetcredentials\"\n}";
+			pwd << "\", \n" << formatstr << "\n}";
+			//pwd << "\", \n\"status\":\"widgetsetcredentials\",\n" << 
 		std::string postdata = sts.str();
 
 		// send to blytz server (-> app)
 		std::string conn_str = blytz_settings.server_url + "/credentials/set";
 
 		printfd("Setting credentials\n");
+
+		printfd("POST data: %s\n", postdata.c_str());
 
 		rest_response res;
 		res = rest_post(conn_str, postdata);

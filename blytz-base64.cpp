@@ -51,7 +51,7 @@ char *b64_encode(const char *str, unsigned int len) {
 }
 
 char *b64_encode_nnl(const char *str, unsigned int len) {
-	return b64_encode(str, len, true, false);
+	return b64_encode(str, len, false, false);
 }
 
 char *b64_encode(const char *str, unsigned int len, bool use_newlines) {

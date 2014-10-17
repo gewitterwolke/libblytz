@@ -122,34 +122,6 @@ namespace blytz {
 
 		RAND_bytes(salt, SALT_LEN);
 
-		/*
-		salt[0] = 1;
-		salt[1] = 1;
-		salt[2] = 1;
-		salt[3] = 1;
-		salt[4] = 1;
-		salt[5] = 1;
-		salt[6] = 1;
-		salt[7] = 1;
-		*/
-		/*
-		salt[0] = 0x58;
-		salt[1] = 0x5a;
-		salt[2] = 0x92;
-		salt[3] = 0x28;
-		salt[4] = 0xa1;
-		salt[5] = 0x0f;
-		salt[6] = 0x3e;
-		salt[7] = 0x54;
-		*/
-		/*
-		printf("salt:");
-		for (int i = 0; i < SALT_LEN; i++) {
-			printf("%x ", salt[i]);
-		}
-		printf("\n");
-		*/
-
 		unsigned int pwdlen = strlen(pwd);
 
 		EVP_CIPHER_CTX en, de;
@@ -176,8 +148,8 @@ namespace blytz {
 		unsigned char *keystr = get_keystr((const unsigned char*)dat, 
 				(unsigned int)len, salt);
 
-		//char *enc = b64_encode_nnl((char *)keystr, SALTSTR_LEN + SALT_LEN + len);
-		char *enc = b64_encode((char *)keystr, SALTSTR_LEN + SALT_LEN + len, false, true);
+		char *enc = b64_encode_nnl((char *)keystr, SALTSTR_LEN + SALT_LEN + len);
+		//char *enc = b64_encode((char *)keystr, SALTSTR_LEN + SALT_LEN + len, false, true);
 
 		// replace newlines
 		if (replace_newlines) {
@@ -228,8 +200,8 @@ namespace blytz {
 
 		unsigned int len;
 
-		//char *dec = b64_decode_nnl(str2, &len);
-		char *dec = b64_decode(str2, &len, true);
+		char *dec = b64_decode_nnl(str2, &len);
+		//char *dec = b64_decode(str2, &len, true);
 		unsigned char *salt = get_salt(dec, len);
 
 		unsigned int pwdlen = strlen(pwd);
