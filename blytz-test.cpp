@@ -142,7 +142,6 @@ TEST(Base64Test, EncodeSample1) {
 }
 
 TEST(EncryptTest, EncryptSample1) {
-	//const char *str = "asdfjkl";
 	const char *str = "asdfjklkdsjflkdsjfkldsjflksjdflsdkjflsdkjflsdjflsdkjflsdjfdslkfsdjflfdskjlkjl";
 	const char *pwd = "test123";
 
@@ -164,8 +163,6 @@ TEST(EncryptTest, EncryptSample1) {
 	enc = encrypt(str, pwd, true);
   dec = decrypt(enc, pwd);
 	EXPECT_STREQ(str, dec);
-	/*
-	*/
 }
 
 TEST(EncryptTest, EncryptSample2) {

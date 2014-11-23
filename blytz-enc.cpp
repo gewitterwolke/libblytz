@@ -196,8 +196,6 @@ namespace blytz {
 			}
 		}
 
-		// printfd("Incoming string for decryption (after replacing '!'): %s\n", str2);
-
 		unsigned int len;
 
 		char *dec = b64_decode_nnl(str2, &len);
