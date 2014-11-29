@@ -125,8 +125,9 @@ namespace blytz {
 
 		printfd( "BLYTZ-API - creating QR code from string %s\n", str);
 
-		char *str2 = (char *)malloc(strlen(str) + MAX_ENC_PWD_LEN);
+		char *str2 = (char *) malloc(strlen(str) + MAX_ENC_PWD_LEN);
 		strcpy(str2, str);
+
 		if (has_encryption_pwd()) {
 			str2 = strcat(str2, "|");
 			str2 = strcat(str2, get_encryption_pwd());
@@ -144,7 +145,6 @@ namespace blytz {
 		fclose(fqr);
 
 		printfd( "BLYTZ-API - QR code created\n");
-		//fclose(f);
 		return buf;
 	}
 

@@ -31,11 +31,9 @@ namespace blytz {
 		r = (rest_response*) userdata;
 		r->body.append((char*) data, size * nmemb);
 
-		//FILE *f = fopen("/tmp/debugrestwrite.txt", "a");
 		printfd("WRITE count %d\n", count);
 		printfd("WRITE addr: %p\n", &r->body);
 		printfd("WRITE cstr: %s\n", (char *)r->body.c_str());
-		//fclose(f);
 
 		return (size * nmemb);
 	}
@@ -220,13 +218,11 @@ namespace blytz {
 		cookie_file.close();
 		printfd("closed cookie file %s\n", cookie_filename.c_str());
 
-		// copy, user has to delete it
+		// user has to delete memory
 		printfd("length of sessionid string %lu\n", sessionid.size());
 		char *sessionid_ch = (char *) malloc(BLYTZ_SESSIONID_STR_LEN);
-		//memcpy(sessionid_ch, sessionid.c_str(), sessionid.size());
 		sessionid_ch = strncpy(sessionid_ch, sessionid.c_str(), 
 				BLYTZ_SESSIONID_STR_LEN);
-		//strcpy(sessionid_ch, sessionid.c_str());
 
 		printfd( "returning session id %s\n", sessionid_ch);
 		return sessionid_ch;

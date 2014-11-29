@@ -51,22 +51,6 @@ namespace blytz {
 
 		rest_response res;
 
-
-		/*
-		// FIXME: only SSH
-		std::string connect_url = blytz_settings.server_url + "/connectSSH";
-
-		fprintf( f, "conn url: %s\n", connect_url.c_str());
-		fflush(f);
-
-		// old
-		std::stringstream sts;
-		sts << "{\n\"hostname\":\"" << blytz_settings.identifier << "\"\n}";
-		std::string post_data = sts.str();
-
-		res = rest_post( connect_url, post_data);
-		*/
-
 		// new REST scheme for "first contact"
 		std::string path = "/" + blytz_settings.name + "/" + blytz_settings.identifier;
 		std::string connect_url = blytz_settings.server_url + "/connect" + path;
@@ -311,7 +295,6 @@ namespace blytz {
 		std::stringstream sts;
 		sts << "{\n\"username\":\"" << user << "\",\n\"password\":\"" <<
 			pwd << "\", \n" << formatstr << "\n}";
-			//pwd << "\", \n\"status\":\"widgetsetcredentials\",\n" << 
 		std::string postdata = sts.str();
 
 		// send to blytz server (-> app)
