@@ -1,7 +1,6 @@
 #ifndef _BLYTZ_API_H_
 #define _BLYTZ_API_H_
 
-#include "blytz-rest.h"
 #include <string>
 
 namespace blytz {
