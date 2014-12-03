@@ -1,44 +1,39 @@
-LDLIBS=-lqrencode -lcurl -lpng -lcrypto
-LDPATHS=-L/usr/local/lib
-LDFLAGS=$(LDPATHS) 
-CCPATHS=-I/usr/local/include
-DEBUG=-g -Wall
-COMPILER=c++
-GTEST_DIR=gtest-1.7.0/
+LIBS=-lqrencode -lcurl -lpng -lcrypto
+LDPATHS?=-L/usr/local/lib
+LDFLAGS=$(LDPATHS) $(LIBS)
+CFLAGS?=-g -Wall -fPIC -I/usr/local/include
+CXX?=clang++
+LIB_SRC=blytz-api.cpp blytz-rest.cpp blytz-qr.cpp blytz-enc.cpp blytz-base64.cpp
+LIB_OBJ=$(patsubst %.cpp,%.o,$(LIB_SRC))
+
+GTEST_DIR?=/usr/src/gtest
+GTEST_SRC=$(GTEST_DIR)/src/gtest-all.cc
+GTEST_OBJ=gtest-all.o
+GTEST_CFLAGS=-pthread -I$(GTEST_DIR)
+
+CFLAGS+=$(GTEST_CFLAGS)
+
+.PHONY: all clean test
 
 all: libblytz.so
 
-test: blytz-test.o
+test: blytz-test
+	@./blytz-test
 
 install:
 	sudo cp libblytz.so /usr/local/lib/
 
-libblytz.so: blytz-api.o blytz-rest.o blytz-qr.o \
-	blytz-enc.o blytz-base64.o
-	$(COMPILER) $(DEBUG) --shared -o libblytz.so \
-		blytz-rest.o blytz-api.o blytz-qr.o blytz-enc.o \
-		blytz-base64.o $(LDFLAGS) $(LDLIBS)
+libblytz.so: $(LIB_OBJ)
+	$(CXX) --shared -o $@ $(LIB_OBJ) $(LDFLAGS)
 
-blytz-api.o: blytz-api.cpp
-	$(COMPILER) $(DEBUG) -fPIC $(CCPATHS) -c blytz-api.cpp -o blytz-api.o
+%.o: %.cpp
+	$(CXX) $(CFLAGS) -c $< -o $@
 
-blytz-rest.o: blytz-rest.cpp
-	$(COMPILER) $(DEBUG) -fPIC $(CCPATHS) -c blytz-rest.cpp -o blytz-rest.o
+$(GTEST_OBJ): $(GTEST_SRC)
+	$(CXX) $(CFLAGS) -c $< -o $(shell basename $@)
 
-blytz-qr.o: blytz-qr.cpp
-	$(COMPILER) $(DEBUG) -fPIC $(CCPATHS) -c blytz-qr.cpp -o blytz-qr.o
-
-blytz-enc.o: blytz-enc.cpp
-	$(COMPILER) $(DEBUG) -fPIC $(CCPATHS) -c blytz-enc.cpp -o blytz-enc.o
-
-blytz-base64.o: blytz-base64.cpp
-	$(COMPILER) $(DEBUG) -fPIC $(CCPATHS) -c blytz-base64.cpp -o blytz-base64.o
-
-blytz-debug.o: blytz-debug.cpp blytz-debug.h
-	$(COMPILER) $(DEBUG) -fPIC $(CCPATHS) -c blytz-debug.cpp -o blytz-debug.o
-
-blytz-test.o: blytz-test.cpp libblytz.so install
-	$(COMPILER) $(DEBUG) $(CCPATHS) blytz-test.cpp  -L. -lblytz -lgtest $(LDFLAGS) -pthread -o blytz-test && ./blytz-test
+blytz-test: blytz-test.cpp libblytz.so $(GTEST_OBJ)
+	$(CXX) $(CFLAGS) blytz-test.cpp $(GTEST_OBJ) -L. -lblytz $(LDFLAGS) -o blytz-test
 
 clean:
 	rm -rf *~ .*~ *.o *.so *.core blytz-test
