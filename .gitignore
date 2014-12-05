@@ -5,3 +5,7 @@
 tags
 gtest-1.7.0*
 blytz-test
+CMakeCache.txt
+CMakeFiles
+*.old
+*.cmake
