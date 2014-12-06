@@ -7,8 +7,7 @@ functional.
 Needed libraries for compiling are the dev versions of `libqrencode`, `libcurl` (e.g. `libcurl4-gnutls-dev`), `libcrypto` and `libpng`.
 
 Compile via
-`cmake .`
-`make`
+`cmake .`, `make`
 
 and test using
 `./blytz-test`
