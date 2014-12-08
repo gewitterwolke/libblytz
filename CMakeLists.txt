@@ -60,3 +60,6 @@ ENDIF()
 # install
 install(TARGETS blytz LIBRARY DESTINATION lib)
 install(FILES ${blytz_headers} DESTINATION include/blytz)
+
+# test
+add_custom_target(test COMMAND ./blytz-test DEPENDS blytz-test)
